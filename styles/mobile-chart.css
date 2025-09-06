@@ -1,0 +1,285 @@
+/* Mobile-specific chart styles */
+
+/* Base mobile styles */
+@media (max-width: 768px) {
+    /* Chart container full width on mobile */
+    .chart-card {
+        border-radius: 0.5rem;
+        margin: 0;
+    }
+    
+    .chart-card .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .chart-card .card-header h2 {
+        font-size: 1rem;
+    }
+    
+    /* Controls container */
+    .chart-controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+    
+    /* Filter buttons container - scrollable pills */
+    .chart-filter-buttons {
+        flex: 1;
+        display: flex;
+        gap: 0.375rem;
+        padding: 0.25rem;
+        background: rgba(var(--muted-rgb, 0, 0, 0), 0.05);
+        border-radius: 0.75rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        max-width: calc(100vw - 6rem);
+        /* Hide scrollbar */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .chart-filter-buttons::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* Individual filter buttons - compact pills */
+    .filter-btn {
+        flex: 0 0 auto;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.813rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        background: transparent;
+        color: var(--muted-foreground);
+        border: none;
+        min-width: auto;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    
+    .filter-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .filter-btn.active {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
+    }
+    
+    /* Custom button - icon only on small screens */
+    .filter-btn[data-filter="custom"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .filter-btn[data-filter="custom"] .filter-text {
+        display: inline;
+    }
+    
+    /* View toggle buttons */
+    .chart-view-toggle {
+        display: flex;
+        gap: 0;
+        background: var(--muted);
+        border-radius: 0.5rem;
+        padding: 0.125rem;
+        flex-shrink: 0;
+    }
+    
+    .view-btn {
+        padding: 0.375rem;
+        font-size: 0.875rem;
+        background: transparent;
+        border-radius: 0.375rem;
+    }
+    
+    .view-btn.active {
+        background: var(--background);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .view-btn i {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Custom date range */
+    .custom-date-range {
+        margin: 0.5rem 0;
+        padding: 0.75rem;
+        gap: 0.5rem;
+        background: var(--muted);
+        border-radius: 0.5rem;
+    }
+    
+    .custom-date-range input[type="date"] {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 16px; /* Prevent zoom on iOS */
+        border-radius: 0.375rem;
+        border: 1px solid var(--border);
+        background: var(--background);
+    }
+    
+    .custom-date-range .btn {
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.25rem;
+    }
+    
+    /* Chart container */
+    .chart-container {
+        padding: 0.75rem;
+        min-height: 200px;
+        touch-action: pan-y pinch-zoom;
+    }
+    
+    /* Chart stats */
+    .chart-stats {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: var(--muted);
+    }
+    
+    .chart-stat {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: var(--background);
+        border-radius: 0.375rem;
+    }
+    
+    .chart-stat .label {
+        font-size: 0.813rem;
+        font-weight: 500;
+    }
+    
+    .chart-stat .value {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+}
+
+/* Very small phones - ultra compact */
+@media (max-width: 380px) {
+    .chart-filter-buttons {
+        padding: 0.125rem;
+        gap: 0.25rem;
+    }
+    
+    .filter-btn {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+        border-radius: 0.375rem;
+    }
+    
+    /* Custom button - icon only */
+    .filter-btn[data-filter="custom"] {
+        padding: 0.375rem;
+        font-size: 0;
+    }
+    
+    .filter-btn[data-filter="custom"] i {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+    }
+    
+    .filter-btn[data-filter="custom"] .filter-text {
+        display: none;
+    }
+    
+    /* Smaller view buttons */
+    .view-btn {
+        padding: 0.3rem;
+    }
+    
+    .view-btn i {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Landscape mode adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    .chart-container {
+        min-height: 150px;
+        max-height: 40vh;
+    }
+    
+    .chart-controls {
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* Dark mode specific mobile adjustments */
+@media (max-width: 768px) {
+    .dark .chart-filter-buttons {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .dark .filter-btn {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .dark .filter-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .dark .filter-btn.active {
+        background: #4ade80;
+        color: #000;
+        font-weight: 600;
+    }
+    
+    .dark .chart-view-toggle {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .dark .view-btn.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+}
+
+/* Light mode specific mobile adjustments */
+@media (max-width: 768px) {
+    .light .chart-filter-buttons {
+        background: rgba(255, 255, 255, 0.8);
+    }
+    
+    .light .filter-btn {
+        background: rgba(0, 0, 0, 0.05);
+        color: rgba(0, 0, 0, 0.7);
+    }
+    
+    .light .filter-btn.active {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .light .chart-view-toggle {
+        background: rgba(0, 0, 0, 0.05);
+    }
+    
+    .light .view-btn.active {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+}

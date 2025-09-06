@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal - Professional Dashboard</title>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/pages.css">
+    <link rel="stylesheet" href="styles/mobile-chart.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Mobile Menu Toggle -->
+        <button class="menu-toggle" id="menuToggle">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i data-lucide="trending-up"></i>
+                    <span>Trading Journal</span>
+                </div>
+                <button class="sidebar-close" id="sidebarClose">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#new-trade" class="nav-item" data-page="new-trade">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Nuevo Trade</span>
+                </a>
+                <a href="#history" class="nav-item" data-page="history">
+                    <i data-lucide="history"></i>
+                    <span>Historial</span>
+                </a>
+                <a href="#analytics" class="nav-item" data-page="analytics">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Análisis</span>
+                </a>
+                <a href="#settings" class="nav-item" data-page="settings">
+                    <i data-lucide="settings"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="theme-toggle" id="themeToggle">
+                    <i data-lucide="moon" class="dark-icon"></i>
+                    <i data-lucide="sun" class="light-icon"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Toast Container -->
+            <div id="toastContainer" class="toast-container"></div>
+
+            <!-- Dashboard Page -->
+            <section id="dashboard" class="page active">
+                <header class="page-header">
+                    <h1>Dashboard</h1>
+                    <p class="page-subtitle">Resumen de tu rendimiento de trading</p>
+                </header>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="banknote"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Balance Total</span>
+                            <span class="stat-value" id="totalBalance">£0.00</span>
+                            <span class="stat-change" id="balanceChange">
+                                <i data-lucide="trending-up"></i>
+                                <span>0%</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="activity"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">P&L Total</span>
+                            <span class="stat-value" id="totalPnl">£0.00</span>
+                            <span class="stat-change" id="pnlPercentage">
+                                <i data-lucide="percent"></i>
+                                <span>0%</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="target"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Win Rate</span>
+                            <div class="win-rate-circle">
+                                <svg width="120" height="120">
+                                    <circle cx="60" cy="60" r="50" class="circle-bg"/>
+                                    <circle cx="60" cy="60" r="50" class="circle-progress" id="winRateCircle"/>
+                                </svg>
+                                <div class="win-rate-text">
+                                    <span class="percentage" id="winRateText">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="layers"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Trades</span>
+                            <span class="stat-value" id="totalTrades">0</span>
+                            <span class="stat-change" id="tradesDetail">
+                                <span>0W / 0L</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Section -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h2>Rendimiento</h2>
+                        <div class="chart-controls">
+                            <div class="chart-filter-buttons">
+                                <button class="filter-btn active" data-filter="all">Todo</button>
+                                <button class="filter-btn" data-filter="daily">Diario</button>
+                                <button class="filter-btn" data-filter="weekly">Semanal</button>
+                                <button class="filter-btn" data-filter="monthly">Mensual</button>
+                                <button class="filter-btn" data-filter="custom">
+                                    <i data-lucide="calendar"></i>
+                                    <span class="filter-text">Custom</span>
+                                </button>
+                            </div>
+                            <div class="chart-view-toggle">
+                                <button class="view-btn active" data-view="bar">
+                                    <i data-lucide="bar-chart-2"></i>
+                                </button>
+                                <button class="view-btn" data-view="line">
+                                    <i data-lucide="line-chart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="custom-date-range" id="customDateRange" style="display: none;">
+                        <input type="date" id="startDate" placeholder="Fecha inicio">
+                        <input type="date" id="endDate" placeholder="Fecha fin">
+                        <button class="btn btn-primary" id="applyCustomRange">Aplicar</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="profitChart"></canvas>
+                    </div>
+                    <div class="chart-stats">
+                        <div class="chart-stat">
+                            <span class="label">Ganancia Total</span>
+                            <span class="value positive" id="chartTotalProfit">£0.00</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="label">Pérdida Total</span>
+                            <span class="value negative" id="chartTotalLoss">£0.00</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="label">Promedio</span>
+                            <span class="value" id="chartAverage">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card positive">
+                        <i data-lucide="trending-up"></i>
+                        <div>
+                            <span class="metric-label">Mejor Trade</span>
+                            <span class="metric-value" id="bestTrade">£0.00</span>
+                        </div>
+                    </div>
+                    <div class="metric-card negative">
+                        <i data-lucide="trending-down"></i>
+                        <div>
+                            <span class="metric-label">Peor Trade</span>
+                            <span class="metric-value" id="worstTrade">£0.00</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <i data-lucide="bar-chart"></i>
+                        <div>
+                            <span class="metric-label">Promedio Ganancia</span>
+                            <span class="metric-value" id="avgWin">£0.00</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <i data-lucide="bar-chart-2"></i>
+                        <div>
+                            <span class="metric-label">Promedio Pérdida</span>
+                            <span class="metric-value" id="avgLoss">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- New Trade Page -->
+            <section id="new-trade" class="page">
+                <header class="page-header">
+                    <h1>Registrar Nuevo Trade</h1>
+                    <p class="page-subtitle">Documenta tu operación para mejorar tu trading</p>
+                </header>
+
+                <form id="tradeForm" class="trade-form">
+                    <!-- Basic Information -->
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h2>
+                                <i data-lucide="file-text"></i>
+                                Información Básica
+                            </h2>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="tradeDate">Fecha</label>
+                                <input type="date" id="tradeDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="entryTime">Hora Entrada</label>
+                                <input type="time" id="entryTime" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exitTime">Hora Salida</label>
+                                <input type="time" id="exitTime">
+                            </div>
+                            <div class="form-group">
+                                <label for="symbol">Par/Activo</label>
+                                <input type="text" id="symbol" placeholder="EURUSD" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="timeframe">Timeframe</label>
+                                <select id="timeframe">
+                                    <option value="15m">15m</option>
+                                    <option value="30m">30m</option>
+                                    <option value="1H">1H</option>
+                                    <option value="4H">4H</option>
+                                    <option value="1D">1D</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="direction">Dirección</label>
+                                <select id="direction">
+                                    <option value="long">LONG</option>
+                                    <option value="short">SHORT</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trade Details -->
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h2>
+                            <i data-lucide="banknote"></i>
+                            Detalles del Trade
+                            </h2>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="entryPrice">Precio Entrada</label>
+                                <input type="number" id="entryPrice" step="0.00001" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="stopLoss">Stop Loss</label>
+                                <input type="number" id="stopLoss" step="0.00001">
+                            </div>
+                            <div class="form-group">
+                                <label for="takeProfit">Take Profit</label>
+                                <input type="number" id="takeProfit" step="0.00001">
+                            </div>
+                            <div class="form-group">
+                                <label for="exitPrice">Precio Salida</label>
+                                <input type="number" id="exitPrice" step="0.00001">
+                            </div>
+                            <div class="form-group">
+                                <label for="volume">Lote/Volumen</label>
+                                <input type="number" id="volume" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="pnl">P&L (£)</label>
+                                <input type="number" id="pnl" step="0.01" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Signals Used -->
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h2>
+                                <i data-lucide="zap"></i>
+                                Señales Utilizadas
+                            </h2>
+                        </div>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="order-flow">
+                                <span>Order Flow</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="delta-volume">
+                                <span>Delta Volume</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="imbalance">
+                                <span>Imbalance (FVG)</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="candle-pattern">
+                                <span>Patrón Velas</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="rsi">
+                                <span>RSI</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="ema-cross">
+                                <span>Cruce EMAs</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="bollinger">
+                                <span>Bollinger Bands</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="signals" value="support-resistance">
+                                <span>Soporte/Resistencia</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h2>
+                                <i data-lucide="edit-3"></i>
+                                Análisis
+                            </h2>
+                        </div>
+                        <div class="form-group">
+                            <label for="entryReason">¿Por qué entraste?</label>
+                            <textarea id="entryReason" rows="4" placeholder="Describe las confluencias..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="lessons">¿Qué aprendiste?</label>
+                            <textarea id="lessons" rows="4" placeholder="Lecciones aprendidas..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="app.resetForm()">
+                            <i data-lucide="x"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-lucide="save"></i>
+                            Guardar Trade
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- History Page -->
+            <section id="history" class="page">
+                <header class="page-header">
+                    <h1>Historial de Trades</h1>
+                    <p class="page-subtitle">Todos tus trades registrados</p>
+                </header>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Par</th>
+                                    <th>Dirección</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
+                                    <th>P&L</th>
+                                    <th>%</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tradesTableBody">
+                                <!-- Trades will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Page -->
+            <section id="analytics" class="page">
+                <header class="page-header">
+                    <h1>Análisis Detallado</h1>
+                    <p class="page-subtitle">Estadísticas avanzadas de tu trading</p>
+                </header>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Profit Factor</span>
+                            <span class="stat-value" id="profitFactor">0.00</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="activity"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Sharpe Ratio</span>
+                            <span class="stat-value" id="sharpeRatio">0.00</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="trending-down"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Max Drawdown</span>
+                            <span class="stat-value negative" id="maxDrawdown">0%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i data-lucide="calculator"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Expectancy</span>
+                            <span class="stat-value" id="expectancy">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Rendimiento por Señal</h2>
+                    </div>
+                    <div id="signalPerformance" class="signal-performance"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Rendimiento por Día</h2>
+                    </div>
+                    <div id="dayPerformance" class="day-performance"></div>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="settings" class="page">
+                <header class="page-header">
+                    <h1>Configuración</h1>
+                    <p class="page-subtitle">Personaliza tu journal</p>
+                </header>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <i data-lucide="wallet"></i>
+                            Capital Inicial
+                        </h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="initialBalance">Balance Inicial</label>
+                        <input type="number" id="initialBalance" step="0.01" placeholder="10000">
+                        <button class="btn btn-primary" onclick="settings.updateInitialBalance()">
+                            <i data-lucide="save"></i>
+                            Actualizar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <i data-lucide="database"></i>
+                            Gestión de Datos
+                        </h2>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="settings.exportData()">
+                            <i data-lucide="download"></i>
+                            Exportar JSON
+                        </button>
+                        <button class="btn btn-secondary" onclick="settings.importData()">
+                            <i data-lucide="upload"></i>
+                            Importar JSON
+                        </button>
+                        <button class="btn btn-danger" onclick="settings.clearData()">
+                            <i data-lucide="trash-2"></i>
+                            Limpiar Datos
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/trades.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "trading-journal",
+  "version": "1.0.0",
+  "description": "Professional Trading Journal with GBP support",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "serve": "python -m http.server 8000"
+  },
+  "keywords": [
+    "trading",
+    "journal",
+    "forex",
+    "gbp",
+    "dashboard",
+    "analytics"
+  ],
+  "author": "Alexander's Studio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/trading-journal.git"
+  },
+  "homepage": "https://your-app.netlify.app"
+}
