@@ -56,7 +56,6 @@ class TradingCalculator {
     init() {
         this.createCalculatorModal();
         this.setupEventListeners();
-        this.loadAccountSettings();
     }
     
     createCalculatorModal() {
@@ -109,8 +108,9 @@ class TradingCalculator {
                                     </select>
                                 </div>
                                 <div class="calc-field">
-                                    <label for="calcBalance">Balance</label>
-                                    <input type="number" id="calcBalance" value="10000" step="100">
+                                    <label for="calcBalance">Balance Actual</label>
+                                    <input type="number" id="calcBalance" value="10000" step="100" readonly>
+                                    <small class="field-hint">Balance dinámico de tu cuenta</small>
                                 </div>
                             </div>
                         </div>
@@ -175,10 +175,6 @@ class TradingCalculator {
                                     <label for="calcTakeProfit">Take Profit</label>
                                     <input type="number" id="calcTakeProfit" step="0.00001" placeholder="0.00000">
                                 </div>
-                                <div class="calc-field">
-                                    <label for="calcLotSize">Tamaño Lote</label>
-                                    <input type="number" id="calcLotSize" value="0.01" step="0.01" min="0.01">
-                                </div>
                             </div>
                         </div>
                         
@@ -201,13 +197,12 @@ class TradingCalculator {
                                     <small class="field-hint">Monto fijo a arriesgar</small>
                                 </div>
                                 <div class="calc-field full-width">
-                                    <label>Tamaño de Lote Recomendado</label>
-                                    <div class="recommended-lot">
+                                    <label>Tamaño de Lote Calculado</label>
+                                    <div class="recommended-lot primary">
                                         <span id="recommendedLot">0.00</span>
-                                        <button type="button" class="btn-use-lot" id="useRecommendedLot" title="Usar este tamaño">
-                                            <i data-lucide="check-circle"></i>
-                                        </button>
+                                        <span class="lot-label">lots</span>
                                     </div>
+                                    <small class="field-hint">Calculado según tu riesgo y stop loss</small>
                                 </div>
                             </div>
                         </div>
@@ -308,7 +303,7 @@ class TradingCalculator {
         
         // Input listeners
         const inputs = ['calcSymbol', 'calcEntry', 'calcStopLoss', 'calcTakeProfit', 
-                       'calcLotSize', 'calcLeverage', 'calcBalance'];
+                       'calcLeverage'];
         
         inputs.forEach(id => {
             const element = document.getElementById(id);
@@ -361,17 +356,9 @@ class TradingCalculator {
             });
         }
         
-        // Use recommended lot button
         const useRecommendedBtn = document.getElementById('useRecommendedLot');
         if (useRecommendedBtn) {
-            useRecommendedBtn.addEventListener('click', () => {
-                const recommendedLot = document.getElementById('recommendedLot')?.textContent;
-                if (recommendedLot && recommendedLot !== '0.00') {
-                    document.getElementById('calcLotSize').value = recommendedLot;
-                    this.calculate();
-                    app.modules.utils?.showToast('Tamaño de lote actualizado', 'success');
-                }
-            });
+            useRecommendedBtn.style.display = 'none'; // Hide since we're using it directly
         }
     }
     
@@ -379,6 +366,8 @@ class TradingCalculator {
         const modal = document.getElementById('calculatorModal');
         if (modal) {
             modal.classList.add('active');
+            // Load account settings first
+            this.loadAccountSettings();
             // Initialize risk mode indicator
             this.updateRiskModeIndicator();
             // Load current prices if available
@@ -403,7 +392,6 @@ class TradingCalculator {
         const entry = parseFloat(document.getElementById('calcEntry').value) || 0;
         const stopLoss = parseFloat(document.getElementById('calcStopLoss').value) || 0;
         const takeProfit = parseFloat(document.getElementById('calcTakeProfit').value) || 0;
-        const lotSize = parseFloat(document.getElementById('calcLotSize').value) || 0.01;
         let riskPercent = parseFloat(document.getElementById('calcRiskPercent').value) || 1;
         let riskAmount = parseFloat(document.getElementById('calcRiskAmount').value) || 0;
         const leverage = parseFloat(document.getElementById('calcLeverage').value) || 500;
@@ -432,27 +420,8 @@ class TradingCalculator {
             pipsTP = takeProfit ? (entry - takeProfit) / pipSize : 0;
         }
         
-        // Calculate pip value (simplified - assuming GBP account)
-        let pipValue = (pipSize * contractSize * lotSize);
-        
-        // For pairs not ending in account currency, we need conversion (simplified)
-        if (symbol.includes('JPY')) {
-            pipValue = pipValue / 100; // Simplified conversion
-        }
-        if (symbol.startsWith('EUR') || symbol.startsWith('GBP')) {
-            pipValue = pipValue * 1.2; // Simplified conversion rate
-        }
-        
-        // Calculate potential loss and profit
-        const potentialLoss = Math.abs(pipsSL * pipValue);
-        const potentialProfit = Math.abs(pipsTP * pipValue);
-        
         // Calculate Risk/Reward ratio
         const rrRatio = pipsSL > 0 ? (pipsTP / pipsSL).toFixed(2) : 0;
-        
-        // Calculate margin required
-        const tradeValue = entry * contractSize * lotSize;
-        const marginRequired = tradeValue / leverage;
         
         // Handle risk mode (percent vs amount)
         if (this.riskMode === 'amount') {
@@ -486,6 +455,26 @@ class TradingCalculator {
             recommendedLotSize = Math.max(0.01, parseFloat(recommendedLotSize.toFixed(2)));
         }
         
+        // Calculate pip value - using recommended lot size
+        const lotSize = recommendedLotSize > 0 ? recommendedLotSize : 0.01;
+        let pipValue = (pipSize * contractSize * lotSize);
+        
+        // For pairs not ending in account currency, we need conversion (simplified)
+        if (symbol.includes('JPY')) {
+            pipValue = pipValue / 100; // Simplified conversion
+        }
+        if (symbol.startsWith('EUR') || symbol.startsWith('GBP')) {
+            pipValue = pipValue * 1.2; // Simplified conversion rate
+        }
+        
+        // Calculate potential loss and profit
+        const potentialLoss = Math.abs(pipsSL * pipValue);
+        const potentialProfit = Math.abs(pipsTP * pipValue);
+        
+        // Calculate margin required
+        const tradeValue = entry * contractSize * lotSize;
+        const marginRequired = tradeValue / leverage;
+        
         // Update results
         document.getElementById('resultPipsSL').textContent = Math.abs(pipsSL).toFixed(1);
         document.getElementById('resultPipsTP').textContent = Math.abs(pipsTP).toFixed(1);
@@ -500,14 +489,8 @@ class TradingCalculator {
         const recommendedLotEl = document.getElementById('recommendedLot');
         if (recommendedLotEl) {
             recommendedLotEl.textContent = recommendedLotSize.toFixed(2);
-            
-            // Add visual indicator if current lot size differs from recommended
-            const currentLot = parseFloat(document.getElementById('calcLotSize').value) || 0.01;
-            if (Math.abs(currentLot - recommendedLotSize) > 0.01) {
-                recommendedLotEl.parentElement.classList.add('highlight');
-            } else {
-                recommendedLotEl.parentElement.classList.remove('highlight');
-            }
+            // Always highlight since this is the main lot size now
+            recommendedLotEl.parentElement.classList.add('primary');
         }
         
         // Add RR color coding
@@ -539,12 +522,13 @@ class TradingCalculator {
         document.getElementById('calcEntry').value = '';
         document.getElementById('calcStopLoss').value = '';
         document.getElementById('calcTakeProfit').value = '';
-        document.getElementById('calcLotSize').value = '0.01';
         document.getElementById('calcRiskPercent').value = '1';
         document.getElementById('calcRiskAmount').value = '100';
         this.riskMode = 'percent';
         this.updateRiskModeIndicator();
         this.clearResults();
+        // Reload current balance
+        this.loadAccountSettings();
         
         // Remove any active classes
         document.querySelectorAll('.calc-field.risk-active').forEach(field => {
@@ -558,7 +542,7 @@ class TradingCalculator {
         const entry = document.getElementById('calcEntry').value;
         const stopLoss = document.getElementById('calcStopLoss').value;
         const takeProfit = document.getElementById('calcTakeProfit').value;
-        const lotSize = document.getElementById('calcLotSize').value;
+        const lotSize = document.getElementById('recommendedLot')?.textContent || '0.01';
         const orderType = document.querySelector('.order-btn.active').dataset.type;
         
         // Close calculator
@@ -587,7 +571,7 @@ class TradingCalculator {
             
             // Show success message
             if (app.modules.utils) {
-                app.modules.utils.showToast('Valores transferidos al nuevo trade', 'success');
+                app.modules.utils.showToast(`Trade configurado: ${symbol} ${orderType.toUpperCase()} ${lotSize} lots`, 'success');
             }
         }, 300);
     }
@@ -613,9 +597,23 @@ class TradingCalculator {
     loadAccountSettings() {
         // Load from storage if available
         const settings = app.modules.storage?.getSettings();
+        const trades = app.modules.storage?.getAllTrades() || [];
+        
         if (settings) {
-            this.accountSettings.balance = settings.initialBalance || 10000;
-            document.getElementById('calcBalance').value = this.accountSettings.balance;
+            // Calculate current balance (initial + all P&L)
+            let currentBalance = settings.initialBalance || 10000;
+            trades.forEach(trade => {
+                currentBalance += trade.pnl || 0;
+            });
+            
+            this.accountSettings.balance = currentBalance;
+            const balanceInput = document.getElementById('calcBalance');
+            if (balanceInput) {
+                balanceInput.value = currentBalance.toFixed(2);
+                // Make it read-only since it's calculated
+                balanceInput.setAttribute('readonly', true);
+                balanceInput.setAttribute('title', `Balance actual: Balance inicial (£${(settings.initialBalance || 10000).toFixed(2)}) + P&L Total (£${trades.reduce((sum, t) => sum + (t.pnl || 0), 0).toFixed(2)})`);
+            }
         }
     }
     
