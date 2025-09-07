@@ -75,7 +75,6 @@
     box-shadow: var(--shadow);
     overflow: hidden;
 }
-
 .card-header {
     display: flex;
     flex-direction: column;
@@ -84,6 +83,12 @@
     padding: 1.25rem;
     border-bottom: 1px solid var(--border);
 }
+
+section#history .card-header {
+    flex-direction: column !important;
+    align-items: stretch;
+}
+
 
 .card-header h2 {
     display: flex;
@@ -428,3 +433,5 @@
     gap: 0.5rem;
     flex-wrap: wrap;
 }
+}
+

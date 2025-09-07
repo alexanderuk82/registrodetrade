@@ -406,17 +406,106 @@
                     <p class="page-subtitle">Todos tus trades registrados</p>
                 </header>
 
+                <!-- Filter Controls -->
                 <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <i data-lucide="filter"></i>
+                            Filtros y Búsqueda
+                        </h2>
+                        <div class="history-controls">
+                            <div class="history-filter-buttons">
+                                <button class="history-filter-btn active" data-filter="all">Todo</button>
+                                <button class="history-filter-btn" data-filter="daily">Hoy</button>
+                                <button class="history-filter-btn" data-filter="weekly">Semana</button>
+                                <button class="history-filter-btn" data-filter="monthly">Mes</button>
+                                <button class="history-filter-btn" data-filter="custom">
+                                    <i data-lucide="calendar"></i>
+                                    <span class="filter-text">Custom</span>
+                                </button>
+                            </div>
+                            <form class="search-box" role="search" onsubmit="event.preventDefault();">
+                                <label for="tradeSearch" class="visually-hidden">Buscar trades</label>
+                                <input 
+                                    type="search" 
+                                    id="tradeSearch" 
+                                    name="search"
+                                    placeholder="Buscar por símbolo..."
+                                    aria-label="Buscar trades por símbolo"
+                                    autocomplete="off"
+                                >
+                                <button 
+                                    type="submit" 
+                                    class="search-btn"
+                                    aria-label="Buscar"
+                                    title="Buscar trades"
+                                >
+                                    <i data-lucide="search"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="custom-date-range" id="historyCustomDateRange" style="display: none;">
+                        <input type="date" id="historyStartDate" placeholder="Fecha inicio">
+                        <input type="date" id="historyEndDate" placeholder="Fecha fin">
+                        <button class="btn btn-primary" id="applyHistoryCustomRange">Aplicar</button>
+                    </div>
+                    
+                    <!-- Stats Summary -->
+                    <div class="history-stats" id="historyStats">
+                        <div class="history-stat">
+                            <span class="label">Total Trades</span>
+                            <span class="value">0</span>
+                        </div>
+                        <div class="history-stat">
+                            <span class="label">P&L Total</span>
+                            <span class="value">£0.00</span>
+                        </div>
+                        <div class="history-stat">
+                            <span class="label">Win Rate</span>
+                            <span class="value">0%</span>
+                        </div>
+                        <div class="history-stat">
+                            <span class="label">W/L</span>
+                            <span class="value">0/0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="card">
+                    <div class="table-header">
+                        <div class="items-per-page">
+                            <label>Mostrar:</label>
+                            <select id="itemsPerPage">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>entradas</span>
+                        </div>
+                        <div class="pagination-info" id="paginationInfo">
+                            Mostrando 0 - 0 de 0 trades
+                        </div>
+                    </div>
+                    
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Par</th>
+                                    <th class="sortable" onclick="app.modules.trades.sortTrades('date')">
+                                        Fecha <i data-lucide="chevron-down"></i>
+                                    </th>
+                                    <th class="sortable" onclick="app.modules.trades.sortTrades('symbol')">
+                                        Par <i data-lucide="chevron-down"></i>
+                                    </th>
                                     <th>Dirección</th>
                                     <th>Entrada</th>
                                     <th>Salida</th>
-                                    <th>P&L</th>
+                                    <th class="sortable" onclick="app.modules.trades.sortTrades('pnl')">
+                                        P&L <i data-lucide="chevron-down"></i>
+                                    </th>
                                     <th>%</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -425,6 +514,13 @@
                                 <!-- Trades will be inserted here -->
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination-container">
+                        <div class="pagination-buttons" id="paginationButtons">
+                            <!-- Pagination buttons will be inserted here -->
+                        </div>
                     </div>
                 </div>
             </section>

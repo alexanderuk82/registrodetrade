@@ -170,6 +170,307 @@
     font-size: 0.75rem;
 }
 
+/* History Filter Controls */
+.history-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.history-filter-buttons {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--muted);
+    padding: 0.25rem;
+    border-radius: var(--radius);
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.history-filter-btn {
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: none;
+    border-radius: calc(var(--radius) - 2px);
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.history-filter-btn:hover {
+    background: var(--accent);
+    color: var(--foreground);
+}
+
+.history-filter-btn.active {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+
+/* Search Box */
+.search-box {
+    position: relative;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+}
+
+.search-box input[type="search"] {
+    padding-right: 2.5rem;
+    width: 100%;
+    /* Remove default search input styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Remove default search cancel button in WebKit browsers */
+.search-box input[type="search"]::-webkit-search-cancel-button,
+.search-box input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.search-btn {
+    position: absolute;
+    right: 0.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: calc(var(--radius) - 2px);
+    transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+    background: var(--accent);
+    color: var(--foreground);
+}
+
+.search-btn:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.search-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.search-btn i {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+/* Visually hidden but accessible to screen readers */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+
+
+/* History Stats */
+.history-stats {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    background: var(--accent);
+    flex-wrap: wrap;
+}
+
+.history-stat {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.history-stat .label {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.history-stat .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Table Header Controls */
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.items-per-page {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.items-per-page label {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+.items-per-page select {
+    width: auto;
+    padding: 0.375rem 2rem 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    appearance: none;
+}
+
+.items-per-page span {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}
+
+/* Sortable Table Headers */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.sortable:hover {
+    color: var(--primary);
+}
+
+.sortable i {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    margin-left: 0.25rem;
+    vertical-align: middle;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+}
+
+.sortable:hover i {
+    opacity: 1;
+}
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    background: var(--accent);
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.pagination-btn {
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+}
+
+.pagination-btn.active {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-btn i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Badge Styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: calc(var(--radius) - 2px);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.badge-success {
+    background: rgba(74, 222, 128, 0.1);
+    color: var(--chart-positive);
+}
+
+.badge-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--chart-negative);
+}
+
 /* Analytics Page */
 #analytics .signal-performance {
     display: grid;
@@ -211,8 +512,308 @@
     opacity: 0.5;
 }
 
-/* Mobile First - Responsive adjustments */
+/* Mobile Responsive for History Page */
 @media (max-width: 768px) {
+    .history-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .history-filter-buttons {
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    
+    .history-filter-buttons::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .history-filter-btn {
+        font-size: 0.813rem;
+        padding: 0.4rem 0.625rem;
+    }
+    
+    .search-box {
+        width: 100%;
+        min-width: unset;
+    }
+    
+    .history-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .history-stat {
+        min-width: unset;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .items-per-page {
+        justify-content: center;
+    }
+    
+    .pagination-info {
+        text-align: center;
+    }
+    
+    .pagination-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .pagination-btn {
+        min-width: 32px;
+        height: 32px;
+        font-size: 0.813rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .history-filter-btn[data-filter="custom"] {
+        padding: 0.4rem;
+        font-size: 0;
+    }
+    
+    .history-filter-btn[data-filter="custom"] i {
+        margin: 0;
+    }
+    
+    .history-filter-btn[data-filter="custom"] .filter-text {
+        display: none;
+    }
+    
+    .history-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .sortable {
+        font-size: 0.75rem;
+    }
+    
+    .sortable i {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+/* Mejoras adicionales para la tabla en móvil */
+@media (max-width: 768px) {
+    /* Hacer la tabla responsive con scroll horizontal */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -1rem;
+        padding: 0 1rem;
+    }
+    
+    /* Ancho mínimo para la tabla */
+    .data-table {
+        min-width: 600px;
+    }
+    
+    /* Indicador visual de scroll */
+    .table-container::after {
+        content: '→';
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--primary);
+        color: var(--primary-foreground);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+        pointer-events: none;
+        animation: pulse 2s infinite;
+    }
+    
+    /* Ocultar indicador cuando se hace scroll */
+    .table-container.scrolled::after {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Diseño de tarjetas para móviles pequeños */
+    .data-table {
+        display: none;
+    }
+    
+    /* Mostrar trades como tarjetas */
+    .trades-mobile-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .trade-mobile-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem;
+        position: relative;
+    }
+    
+    .trade-mobile-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .trade-mobile-card-symbol {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .trade-mobile-card-date {
+        font-size: 0.75rem;
+        color: var(--muted-foreground);
+    }
+    
+    .trade-mobile-card-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .trade-mobile-card-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .trade-mobile-card-label {
+        font-size: 0.625rem;
+        color: var(--muted-foreground);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .trade-mobile-card-value {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .trade-mobile-card-pnl {
+        grid-column: span 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
+    }
+    
+    .trade-mobile-card-pnl-value {
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+    
+    .trade-mobile-card-pnl-value.positive {
+        color: var(--chart-positive);
+    }
+    
+    .trade-mobile-card-pnl-value.negative {
+        color: var(--chart-negative);
+    }
+    
+    .trade-mobile-card-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .trade-mobile-card-action {
+        padding: 0.375rem 0.5rem;
+        background: var(--accent);
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) - 2px);
+        color: var(--foreground);
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .trade-mobile-card-action:hover {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-color: var(--primary);
+    }
+    
+    .trade-mobile-card-action.delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--destructive);
+        border-color: var(--destructive);
+    }
+}
+
+/* Animación de pulse para el indicador de scroll */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Mejoras de accesibilidad táctil */
+@media (hover: none) and (pointer: coarse) {
+    /* Aumentar áreas táctiles */
+    .history-filter-btn,
+    .pagination-btn,
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Mejorar espaciado entre elementos interactivos */
+    .history-filter-buttons,
+    .pagination-buttons {
+        gap: 0.5rem;
+    }
+    
+    /* Feedback visual al tocar */
+    .history-filter-btn:active,
+    .pagination-btn:active,
+    .btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* Optimización para iPhone con notch */
+@supports (padding: max(0px)) {
+    .page-header {
+        padding-top: max(1.5rem, env(safe-area-inset-top));
+    }
+    
+    .sidebar {
+        padding-top: max(1rem, env(safe-area-inset-top));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+}
+
+/* Modo oscuro específico para móvil */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+    .history-filter-buttons {
+        background: rgba(30, 30, 30, 0.95);
+    }
+    
+    .trade-mobile-card {
+        background: rgba(23, 23, 23, 0.95);
+    }
+}
     #dashboard .chart-card {
         grid-column: span 1;
     }
@@ -356,6 +957,12 @@
     }
 }
 
+
+@media (min-width: 780px) {
+      .chart-controls {
+      flex-direction: row;
+    }
+}
 /* Dark mode specific adjustments */
 .dark #dashboard .stat-icon {
     background: rgba(74, 222, 128, 0.1);
@@ -379,3 +986,4 @@
 .light .chart-container {
     background: rgba(255, 255, 255, 0.5);
 }
+

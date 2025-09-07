@@ -90,7 +90,13 @@ class NavigationManager {
         break
       case "history":
         if (app.modules.trades) {
-          app.modules.trades.updateHistory()
+          // Initialize filters if not already done
+          if (!app.modules.trades.filtersInitialized) {
+            app.modules.trades.initHistory()
+            app.modules.trades.filtersInitialized = true
+          } else {
+            app.modules.trades.updateHistory()
+          }
         }
         break
       case "analytics":
