@@ -73,9 +73,22 @@ class TradesManager {
     
     getSelectedSignals() {
         const signals = [];
+        
+        // Get main signals (Order Flow, Indicator TV)
         document.querySelectorAll('input[name="signals"]:checked').forEach(checkbox => {
             signals.push(checkbox.value);
         });
+        
+        // Get selected custom indicators
+        document.querySelectorAll('input[name="customIndicators"]:checked').forEach(checkbox => {
+            const settings = app.modules.storage?.getSettings();
+            const customIndicators = settings?.customIndicators || [];
+            const indicator = customIndicators.find(ind => ind.id === checkbox.value);
+            if (indicator) {
+                signals.push(`custom:${indicator.name}`);
+            }
+        });
+        
         return signals;
     }
     
@@ -95,6 +108,204 @@ class TradesManager {
     initHistory() {
         this.setupHistoryFilters();
         this.updateHistory();
+    }
+    
+    // Initialize custom signals
+    initCustomSignals() {
+        const customCheckbox = document.getElementById('customSignal');
+        const modal = document.getElementById('customIndicatorModal');
+        const modalInput = document.getElementById('modalIndicatorName');
+        const closeModal = document.getElementById('closeModal');
+        const cancelModal = document.getElementById('cancelModal');
+        const confirmAdd = document.getElementById('confirmAddIndicator');
+        const modalBackdrop = modal?.querySelector('.modal-backdrop');
+        
+        if (customCheckbox && modal) {
+            // Show modal when custom checkbox is checked
+            customCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.openModal();
+                    // Uncheck the checkbox after opening modal
+                    customCheckbox.checked = false;
+                }
+            });
+        }
+        
+        // Close modal handlers
+        if (closeModal) {
+            closeModal.addEventListener('click', () => this.closeModal());
+        }
+        
+        if (cancelModal) {
+            cancelModal.addEventListener('click', () => this.closeModal());
+        }
+        
+        if (modalBackdrop) {
+            modalBackdrop.addEventListener('click', () => this.closeModal());
+        }
+        
+        // Confirm add indicator
+        if (confirmAdd) {
+            confirmAdd.addEventListener('click', () => {
+                const name = modalInput?.value.trim();
+                if (name) {
+                    this.addCustomIndicator(name);
+                    this.closeModal();
+                } else {
+                    app.modules.utils?.showToast('Por favor ingresa un nombre para el indicador', 'warning');
+                    modalInput?.focus();
+                }
+            });
+        }
+        
+        // Handle Enter key in modal input
+        if (modalInput) {
+            modalInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    confirmAdd?.click();
+                }
+            });
+            
+            // Handle Escape key
+            modalInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.closeModal();
+                }
+            });
+        }
+        
+        // Load saved custom indicators
+        this.loadCustomIndicators();
+    }
+    
+    // Open modal
+    openModal() {
+        const modal = document.getElementById('customIndicatorModal');
+        const modalInput = document.getElementById('modalIndicatorName');
+        
+        if (modal) {
+            modal.classList.add('active');
+            
+            // Clear and focus input
+            if (modalInput) {
+                modalInput.value = '';
+                setTimeout(() => modalInput.focus(), 100);
+            }
+            
+            // Update Lucide icons in modal
+            lucide.createIcons();
+        }
+    }
+    
+    // Close modal
+    closeModal() {
+        const modal = document.getElementById('customIndicatorModal');
+        const modalInput = document.getElementById('modalIndicatorName');
+        
+        if (modal) {
+            modal.classList.remove('active');
+            
+            // Clear input
+            if (modalInput) {
+                modalInput.value = '';
+            }
+        }
+    }
+    
+    // Add custom indicator
+    addCustomIndicator(name) {
+        if (!app.modules.storage) return;
+        
+        const settings = app.modules.storage.getSettings();
+        const customIndicators = settings.customIndicators || [];
+        
+        // Check if already exists
+        if (customIndicators.some(ind => ind.name === name)) {
+            app.modules.utils?.showToast('Este indicador ya existe', 'warning');
+            return;
+        }
+        
+        // Add new indicator
+        customIndicators.push({
+            id: `custom_${Date.now()}`,
+            name: name,
+            createdAt: new Date().toISOString()
+        });
+        
+        // Save to storage
+        app.modules.storage.updateSettings({
+            ...settings,
+            customIndicators
+        });
+        
+        // Update UI
+        this.loadCustomIndicators();
+        app.modules.utils?.showToast('Indicador personalizado agregado', 'success');
+    }
+    
+    // Load custom indicators
+    loadCustomIndicators() {
+        const container = document.getElementById('savedCustomIndicators');
+        if (!container || !app.modules.storage) return;
+        
+        const settings = app.modules.storage.getSettings();
+        const customIndicators = settings.customIndicators || [];
+        
+        if (customIndicators.length === 0) {
+            container.innerHTML = '';
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'block';        
+        
+        customIndicators.forEach(indicator => {
+            const item = document.createElement('div');
+            item.className = 'saved-indicator-item';
+            item.innerHTML = `
+                <input type="checkbox" name="customIndicators" value="${indicator.id}" id="${indicator.id}">
+                <label for="${indicator.id}">${indicator.name}</label>
+                <button type="button" class="delete-indicator" data-id="${indicator.id}" title="Eliminar">
+                    <i data-lucide="x"></i>
+                </button>
+            `;
+            container.appendChild(item);
+        });
+        
+        // Add delete event listeners
+        container.querySelectorAll('.delete-indicator').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.deleteCustomIndicator(btn.dataset.id);
+            });
+        });
+        
+        // Update icons
+        lucide.createIcons();
+    }
+    
+    // Delete custom indicator
+    deleteCustomIndicator(id) {
+        if (!app.modules.storage) return;
+        
+        if (confirm('¿Estás seguro de eliminar este indicador personalizado?')) {
+            const settings = app.modules.storage.getSettings();
+            const customIndicators = settings.customIndicators || [];
+            
+            // Remove indicator
+            const filtered = customIndicators.filter(ind => ind.id !== id);
+            
+            // Save to storage
+            app.modules.storage.updateSettings({
+                ...settings,
+                customIndicators: filtered
+            });
+            
+            // Update UI
+            this.loadCustomIndicators();
+            app.modules.utils?.showToast('Indicador eliminado', 'success');
+        }
     }
     
     // Setup filter event listeners
@@ -150,6 +361,22 @@ class TradesManager {
                 if (searchInput) {
                     this.searchTrades(searchInput.value);
                 }
+            });
+        }
+        
+        // Export CSV button
+        const exportBtn = document.getElementById('exportCSV');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.exportToCSV();
+            });
+        }
+        
+        // Print button
+        const printBtn = document.getElementById('printReport');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                this.printReport();
             });
         }
     }
@@ -513,5 +740,407 @@ class TradesManager {
     
     generateId() {
         return `trade_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
+    // Export filtered trades to CSV
+    exportToCSV() {
+        if (this.filteredTrades.length === 0) {
+            app.modules.utils?.showToast('No hay trades para exportar', 'warning');
+            return;
+        }
+        
+        // Prepare CSV headers
+        const headers = ['Fecha', 'Hora Entrada', 'Hora Salida', 'Par/Activo', 'Dirección', 
+                        'Precio Entrada', 'Precio Salida', 'Stop Loss', 'Take Profit', 
+                        'Volumen', 'P&L', 'Señales', 'Razón Entrada', 'Lecciones'];
+        
+        // Prepare CSV rows
+        const rows = this.filteredTrades.map(trade => {
+            const signals = trade.signals ? trade.signals.join('; ') : '';
+            return [
+                trade.date || '',
+                trade.entryTime || '',
+                trade.exitTime || '',
+                trade.symbol || '',
+                trade.direction ? trade.direction.toUpperCase() : '',
+                trade.entryPrice || '0',
+                trade.exitPrice || '0',
+                trade.stopLoss || '0',
+                trade.takeProfit || '0',
+                trade.volume || '0',
+                trade.pnl || '0',
+                signals,
+                trade.entryReason || '',
+                trade.lessons || ''
+            ];
+        });
+        
+        // Convert to CSV string
+        let csvContent = headers.join(',') + '\n';
+        rows.forEach(row => {
+            const escapedRow = row.map(field => {
+                // Escape fields that contain commas or quotes
+                const stringField = String(field);
+                if (stringField.includes(',') || stringField.includes('"') || stringField.includes('\n')) {
+                    return '"' + stringField.replace(/"/g, '""') + '"';
+                }
+                return stringField;
+            });
+            csvContent += escapedRow.join(',') + '\n';
+        });
+        
+        // Add summary at the end
+        csvContent += '\n\n';
+        csvContent += 'RESUMEN,\n';
+        csvContent += `Total Trades,${this.filteredTrades.length}\n`;
+        
+        let totalPnL = 0;
+        let wins = 0;
+        let losses = 0;
+        
+        this.filteredTrades.forEach(trade => {
+            totalPnL += trade.pnl || 0;
+            if (trade.pnl > 0) wins++;
+            else if (trade.pnl < 0) losses++;
+        });
+        
+        const winRate = this.filteredTrades.length > 0 
+            ? ((wins / this.filteredTrades.length) * 100).toFixed(1)
+            : '0.0';
+        
+        csvContent += `P&L Total,£${totalPnL.toFixed(2)}\n`;
+        csvContent += `Win Rate,${winRate}%\n`;
+        csvContent += `Wins/Losses,${wins}/${losses}\n`;
+        
+        // Get filter name for filename
+        const filterName = this.currentFilter === 'custom' 
+            ? `custom_${document.getElementById('historyStartDate')?.value}_${document.getElementById('historyEndDate')?.value}`
+            : this.currentFilter;
+        
+        // Create download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `trades_${filterName}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        app.modules.utils?.showToast('Reporte CSV exportado exitosamente', 'success');
+    }
+    
+    // Print filtered trades report
+    printReport() {
+        if (this.filteredTrades.length === 0) {
+            app.modules.utils?.showToast('No hay trades para imprimir', 'warning');
+            return;
+        }
+        
+        // Calculate stats
+        let totalPnL = 0;
+        let wins = 0;
+        let losses = 0;
+        
+        this.filteredTrades.forEach(trade => {
+            totalPnL += trade.pnl || 0;
+            if (trade.pnl > 0) wins++;
+            else if (trade.pnl < 0) losses++;
+        });
+        
+        const winRate = this.filteredTrades.length > 0 
+            ? ((wins / this.filteredTrades.length) * 100).toFixed(1)
+            : '0.0';
+        
+        // Get filter description
+        let filterDesc = 'Todos los trades';
+        switch(this.currentFilter) {
+            case 'daily': filterDesc = 'Trades de Hoy'; break;
+            case 'weekly': filterDesc = 'Trades de la Semana'; break;
+            case 'monthly': filterDesc = 'Trades del Mes'; break;
+            case 'custom': 
+                const start = document.getElementById('historyStartDate')?.value;
+                const end = document.getElementById('historyEndDate')?.value;
+                if (start && end) {
+                    filterDesc = `Trades desde ${start} hasta ${end}`;
+                }
+                break;
+        }
+        
+        // Create print window
+        const printWindow = window.open('', '_blank');
+        
+        // Generate HTML for print
+        const printHTML = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Trading - ${filterDesc}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4ade80;
+        }
+        
+        .header h1 {
+            color: #1a1a1a;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4ade80;
+        }
+        
+        .stat-card h3 {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+        
+        .stat-card .value.positive {
+            color: #16a34a;
+        }
+        
+        .stat-card .value.negative {
+            color: #dc2626;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+        
+        thead {
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e5e5;
+        }
+        
+        th {
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            font-size: 14px;
+        }
+        
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        tbody tr:hover {
+            background: #f0f0f0;
+        }
+        
+        .positive {
+            color: #16a34a;
+            font-weight: 600;
+        }
+        
+        .negative {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-long {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .badge-short {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e5e5;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        @media print {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+            
+            .stats-grid {
+                page-break-inside: avoid;
+            }
+            
+            table {
+                page-break-inside: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Trading Journal - Reporte de Trades</h1>
+        <p>${filterDesc}</p>
+        <p>Generado el ${new Date().toLocaleDateString('es-ES', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Trades</h3>
+            <div class="value">${this.filteredTrades.length}</div>
+        </div>
+        <div class="stat-card">
+            <h3>P&L Total</h3>
+            <div class="value ${totalPnL >= 0 ? 'positive' : 'negative'}">
+                £${totalPnL.toFixed(2)}
+            </div>
+        </div>
+        <div class="stat-card">
+            <h3>Win Rate</h3>
+            <div class="value">${winRate}%</div>
+        </div>
+        <div class="stat-card">
+            <h3>Wins / Losses</h3>
+            <div class="value">${wins} / ${losses}</div>
+        </div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Par</th>
+                <th>Dirección</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Volumen</th>
+                <th>P&L</th>
+                <th>%</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${this.filteredTrades.map(trade => {
+                const percentage = trade.entryPrice && trade.volume 
+                    ? ((trade.pnl / (trade.entryPrice * trade.volume)) * 100).toFixed(2)
+                    : '0.00';
+                return `
+                <tr>
+                    <td>${this.formatDate(trade.date)}</td>
+                    <td><strong>${trade.symbol || '-'}</strong></td>
+                    <td>
+                        <span class="badge badge-${trade.direction === 'long' ? 'long' : 'short'}">
+                            ${trade.direction ? trade.direction.toUpperCase() : '-'}
+                        </span>
+                    </td>
+                    <td>${trade.entryPrice?.toFixed(5) || '0'}</td>
+                    <td>${trade.exitPrice?.toFixed(5) || '-'}</td>
+                    <td>${trade.volume || '0'}</td>
+                    <td class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                        £${trade.pnl?.toFixed(2) || '0.00'}
+                    </td>
+                    <td class="${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                        ${percentage}%
+                    </td>
+                </tr>
+                `;
+            }).join('')}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        <p>Trading Journal Professional &copy; ${new Date().getFullYear()}</p>
+        <p>Este reporte es confidencial y para uso personal</p>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
+        `;
+        
+        // Write HTML to print window
+        printWindow.document.write(printHTML);
+        printWindow.document.close();
     }
 }

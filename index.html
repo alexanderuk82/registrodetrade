@@ -28,6 +28,9 @@
     <link rel="stylesheet" href="styles/layout.css">
     <link rel="stylesheet" href="styles/pages.css">
     <link rel="stylesheet" href="styles/mobile-chart.css">
+    <link rel="stylesheet" href="styles/day-performance.css">
+    <link rel="stylesheet" href="styles/tooltip.css">
+    <link rel="stylesheet" href="styles/calculator.css">
 </head>
 <body>
     <div class="app-container">
@@ -60,6 +63,10 @@
                 <a href="#history" class="nav-item" data-page="history">
                     <i data-lucide="history"></i>
                     <span>Historial</span>
+                </a>
+                <a href="#calculator" class="nav-item" data-page="calculator">
+                    <i data-lucide="calculator"></i>
+                    <span>Calculadora</span>
                 </a>
                 <a href="#analytics" class="nav-item" data-page="analytics">
                     <i data-lucide="bar-chart-3"></i>
@@ -332,39 +339,35 @@
                                 Señales Utilizadas
                             </h2>
                         </div>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="order-flow">
-                                <span>Order Flow</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="delta-volume">
-                                <span>Delta Volume</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="imbalance">
-                                <span>Imbalance (FVG)</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="candle-pattern">
-                                <span>Patrón Velas</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="rsi">
-                                <span>RSI</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="ema-cross">
-                                <span>Cruce EMAs</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="bollinger">
-                                <span>Bollinger Bands</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="signals" value="support-resistance">
-                                <span>Soporte/Resistencia</span>
-                            </label>
+                        <div class="signals-container">
+                            <!-- Order Flow -->
+                            <div class="signal-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="signals" value="order-flow" id="orderFlowSignal">
+                                    <span>Order Flow</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Indicator Trading View -->
+                            <div class="signal-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="signals" value="indicator-tv" id="indicatorTVSignal">
+                                    <span>Indicator Trading View</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Custom Indicator -->
+                            <div class="signal-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="signals" value="custom" id="customSignal">
+                                    <span>Custom</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Saved Custom Indicators -->
+                            <div id="savedCustomIndicators" class="saved-indicators">
+                                <!-- Los indicadores personalizados guardados aparecerán aquí -->
+                            </div>
                         </div>
                     </div>
 
@@ -409,10 +412,24 @@
                 <!-- Filter Controls -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>
-                            <i data-lucide="filter"></i>
-                            Filtros y Búsqueda
-                        </h2>
+                        <div class="header-left">
+                            <h2>
+                                <i data-lucide="filter"></i>
+                                Filtros y Búsqueda
+                            </h2>
+                        </div>
+                        <div class="export-controls">
+                            <button class="btn btn-primary" id="exportCSV" title="Exportar a CSV">
+                                <i data-lucide="download"></i>
+                                <span class="btn-text">Exportar CSV</span>
+                            </button>
+                            <button class="btn btn-secondary" id="printReport" title="Imprimir Reporte">
+                                <i data-lucide="printer"></i>
+                                <span class="btn-text">Imprimir</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
                         <div class="history-controls">
                             <div class="history-filter-buttons">
                                 <button class="history-filter-btn active" data-filter="all">Todo</button>
@@ -444,11 +461,11 @@
                                 </button>
                             </form>
                         </div>
-                    </div>
-                    <div class="custom-date-range" id="historyCustomDateRange" style="display: none;">
-                        <input type="date" id="historyStartDate" placeholder="Fecha inicio">
-                        <input type="date" id="historyEndDate" placeholder="Fecha fin">
-                        <button class="btn btn-primary" id="applyHistoryCustomRange">Aplicar</button>
+                        <div class="custom-date-range" id="historyCustomDateRange" style="display: none;">
+                            <input type="date" id="historyStartDate" placeholder="Fecha inicio">
+                            <input type="date" id="historyEndDate" placeholder="Fecha fin">
+                            <button class="btn btn-primary" id="applyHistoryCustomRange">Aplicar</button>
+                        </div>
                     </div>
                     
                     <!-- Stats Summary -->
@@ -580,7 +597,10 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h2>Rendimiento por Día</h2>
+                        <h2>
+                            <i data-lucide="calendar-days"></i>
+                            Calendario de Trading
+                        </h2>
                     </div>
                     <div id="dayPerformance" class="day-performance"></div>
                 </div>
@@ -639,14 +659,56 @@
     <!-- Hidden file input for import -->
     <input type="file" id="importFile" accept=".json" style="display: none;">
 
+    <!-- Custom Indicator Modal -->
+    <div id="customIndicatorModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i data-lucide="plus-circle"></i>
+                    Agregar Indicador Personalizado
+                </h3>
+                <button type="button" class="modal-close" id="closeModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">
+                    Ingresa el nombre del indicador personalizado que deseas agregar a tu lista.
+                </p>
+                <div class="form-group">
+                    <label for="modalIndicatorName">Nombre del Indicador</label>
+                    <input 
+                        type="text" 
+                        id="modalIndicatorName" 
+                        placeholder="Ej: MACD, Fibonacci, Volume Profile..."
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelModal">
+                    <i data-lucide="x"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmAddIndicator">
+                    <i data-lucide="check"></i>
+                    Agregar Indicador
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/storage.js"></script>
+    <script src="js/components/tooltip.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/stats.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/trades.js"></script>
+    <script src="js/calculator.js"></script>
     <script src="js/analytics.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/navigation.js"></script>

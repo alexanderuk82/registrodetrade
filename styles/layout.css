@@ -18,7 +18,7 @@
     height: 100vh;
     left: 0;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
     transition: transform 0.3s ease;
 }
 
@@ -185,7 +185,7 @@
     position: fixed;
     top: 1rem;
     left: 1rem;
-    z-index: 101;
+    z-index: 1001; /* Above sidebar but below modal */
     width: 40px;
     height: 40px;
     background: var(--primary);
@@ -212,6 +212,7 @@
     
     .sidebar.active {
         transform: translateX(0);
+        z-index: 1000; /* Still below modal which is 99999 */
     }
     
     .sidebar-close {

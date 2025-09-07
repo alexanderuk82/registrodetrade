@@ -23,6 +23,23 @@ class NavigationManager {
       item.addEventListener("click", e => {
         e.preventDefault()
         const pageId = item.dataset.page
+        
+        // Special handling for calculator
+        if (pageId === 'calculator') {
+          // Don't change page, just open modal
+          if (window.tradingCalculator) {
+            window.tradingCalculator.openModal()
+          }
+          // Close mobile sidebar if open
+          if (app.modules.utils && app.modules.utils.isMobile()) {
+            const sidebar = document.getElementById("sidebar")
+            if (sidebar) {
+              sidebar.classList.remove("active")
+            }
+          }
+          return
+        }
+        
         if (pageId) {
           this.navigateTo(pageId)
         }
@@ -86,6 +103,11 @@ class NavigationManager {
       case "dashboard":
         if (app.modules.dashboard) {
           app.modules.dashboard.update()
+        }
+        break
+      case "new-trade":
+        if (app.modules.trades) {
+          app.modules.trades.initCustomSignals()
         }
         break
       case "history":

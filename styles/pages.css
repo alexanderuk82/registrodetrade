@@ -512,6 +512,158 @@
     opacity: 0.5;
 }
 
+/* Export Controls */
+.export-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.export-controls .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.export-controls .btn i {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-text {
+    display: inline-block;
+}
+
+@media (max-width: 640px) {
+    .export-controls .btn-text {
+        display: none;
+    }
+    
+    .export-controls .btn {
+        padding: 0.625rem;
+        min-width: auto;
+    }
+}
+
+/* Update card header for export controls */
+section#history .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+/* Signals Container */
+.signals-container {
+    padding: 1rem;
+}
+
+
+@media (min-width: 780px) {
+    .signals-container {
+    display: flex;
+    justify-content: space-between;
+    }
+}
+
+.signal-group {
+    margin-bottom: 1rem;
+}
+
+.signal-group .checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: auto;
+    margin-bottom: 0.5rem;
+}
+
+.signal-group .checkbox-label:hover {
+    background: var(--accent);
+    border-color: var(--primary);
+}
+
+.signal-group .checkbox-label input[type="checkbox"]:checked + span {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Custom Signal Input */
+.custom-signal-input {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: var(--accent);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.custom-signal-input input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--background);
+    color: var(--foreground);
+}
+
+.custom-signal-input .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.saved-indicator-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.25rem;
+    background: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    font-size: 0.875rem;
+}
+
+.saved-indicator-item input[type="checkbox"] {
+    margin: 0;
+}
+
+.saved-indicator-item .delete-indicator {
+    padding: 0.25rem;
+    background: transparent;
+    border: none;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.saved-indicator-item .delete-indicator:hover {
+    color: var(--destructive);
+}
+
+.saved-indicator-item .delete-indicator i {
+    width: 14px;
+    height: 14px;
+}
+
 /* Mobile Responsive for History Page */
 @media (max-width: 768px) {
     .history-controls {
@@ -602,9 +754,38 @@
         width: 12px;
         height: 12px;
     }
+    
+    /* Custom signals on mobile */
+    .signals-container {
+        padding: 0.5rem;
+    }
+    
+    .signal-group .checkbox-label {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .custom-signal-input {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .custom-signal-input input {
+        width: 100%;
+    }
+    
+    .custom-signal-input .btn-sm {
+        width: 100%;
+    }
+    
+    .saved-indicator-item {
+        display: flex;
+        width: calc(100% - 0.5rem);
+        margin: 0.25rem;
+    }
 }
 
-/* Mejoras adicionales para la tabla en móvil */
+/* Additional improvements for the table on mobile */
 @media (max-width: 768px) {
     /* Hacer la tabla responsive con scroll horizontal */
     .table-container {
@@ -637,6 +818,14 @@
         opacity: 0.8;
         pointer-events: none;
         animation: pulse 2s infinite;
+        aria-label: "Desplazar para ver más columnas";
+    }
+    .table-container .visually-hidden {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
     }
     
     /* Ocultar indicador cuando se hace scroll */
@@ -985,5 +1174,183 @@
 
 .light .chart-container {
     background: rgba(255, 255, 255, 0.5);
+}
+
+/* Print Styles */
+@media print {
+    /* Hide elements not needed for print */
+    .sidebar,
+    .menu-toggle,
+    .toast-container,
+    .modal,
+    .theme-toggle,
+    .export-controls,
+    .history-filter-buttons,
+    .search-box,
+    .custom-date-range,
+    .table-header,
+    .pagination-container,
+    .btn,
+    button {
+        display: none !important;
+    }
+    
+    /* Reset page styles */
+    body {
+        background: white;
+        color: black;
+        font-size: 12pt;
+    }
+    
+    .app-container {
+        display: block;
+    }
+    
+    .main-content {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+    
+    /* Page header */
+    .page-header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #4ade80;
+    }
+    
+    .page-header h1 {
+        color: #1a1a1a;
+        font-size: 24pt;
+        margin-bottom: 5px;
+    }
+    
+    .page-subtitle {
+        color: #666;
+        font-size: 10pt;
+    }
+    
+    /* Cards */
+    .card {
+        border: 1px solid #ddd;
+        box-shadow: none;
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+    }
+    
+    .card-header {
+        background: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+    }
+    
+    .card-header h2 {
+        font-size: 14pt;
+        margin: 0;
+    }
+    
+    /* Stats */
+    .history-stats {
+        display: flex;
+        justify-content: space-around;
+        padding: 15px;
+        background: #f9f9f9;
+        border-top: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    .history-stat {
+        text-align: center;
+    }
+    
+    .history-stat .label {
+        font-size: 9pt;
+        color: #666;
+        text-transform: uppercase;
+    }
+    
+    .history-stat .value {
+        font-size: 16pt;
+        font-weight: bold;
+        color: #1a1a1a;
+    }
+    
+    .history-stat .value.positive {
+        color: #16a34a;
+    }
+    
+    .history-stat .value.negative {
+        color: #dc2626;
+    }
+    
+    /* Table */
+    .table-container {
+        overflow: visible;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10pt;
+    }
+    
+    .data-table th {
+        background: #333;
+        color: white;
+        padding: 8px;
+        text-align: left;
+        font-size: 9pt;
+    }
+    
+    .data-table td {
+        padding: 6px;
+        border: 1px solid #ddd;
+    }
+    
+    .data-table tbody tr:nth-child(even) {
+        background: #f9f9f9;
+    }
+    
+    .badge {
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 9pt;
+    }
+    
+    .badge-success {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+    
+    .badge-danger {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    
+    .positive {
+        color: #16a34a;
+        font-weight: bold;
+    }
+    
+    .negative {
+        color: #dc2626;
+        font-weight: bold;
+    }
+    
+    /* Page breaks */
+    .page-break {
+        page-break-after: always;
+    }
+    
+    /* Footer for print */
+    @page {
+        margin: 1cm;
+        size: A4;
+    }
+    
+    @page :first {
+        margin-top: 2cm;
+    }
 }
 

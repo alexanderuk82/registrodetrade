@@ -293,6 +293,11 @@ class DashboardManager {
       elements.totalBalance.textContent = this.formatCurrency(
         stats.currentBalance
       )
+      // Add tooltip attribute
+      const balanceCard = elements.totalBalance.closest('.stat-card');
+      if (balanceCard && !balanceCard.hasAttribute('data-tooltip')) {
+        balanceCard.setAttribute('data-tooltip', 'totalBalance');
+      }
     }
 
     // Update balance change
@@ -312,6 +317,11 @@ class DashboardManager {
     // Update P&L
     if (elements.totalPnl) {
       elements.totalPnl.textContent = this.formatCurrency(stats.totalPnL)
+      // Add tooltip attribute
+      const pnlCard = elements.totalPnl.closest('.stat-card');
+      if (pnlCard && !pnlCard.hasAttribute('data-tooltip')) {
+        pnlCard.setAttribute('data-tooltip', 'totalPnL');
+      }
     }
 
     // Update P&L percentage
@@ -331,11 +341,21 @@ class DashboardManager {
     // Update win rate text
     if (elements.winRateText) {
       elements.winRateText.textContent = `${stats.winRate.toFixed(1)}%`
+      // Add tooltip attribute
+      const winRateCard = elements.winRateText.closest('.stat-card');
+      if (winRateCard && !winRateCard.hasAttribute('data-tooltip')) {
+        winRateCard.setAttribute('data-tooltip', 'winRate');
+      }
     }
 
     // Update total trades
     if (elements.totalTrades) {
       elements.totalTrades.textContent = stats.totalTrades.toString()
+      // Add tooltip attribute
+      const tradesCard = elements.totalTrades.closest('.stat-card');
+      if (tradesCard && !tradesCard.hasAttribute('data-tooltip')) {
+        tradesCard.setAttribute('data-tooltip', 'totalTrades');
+      }
     }
 
     // Update trades detail
@@ -352,18 +372,39 @@ class DashboardManager {
 
     if (elements.bestTrade) {
       elements.bestTrade.textContent = this.formatCurrency(stats.bestTrade)
+      const bestCard = elements.bestTrade.closest('.metric-card');
+      if (bestCard && !bestCard.hasAttribute('data-tooltip')) {
+        bestCard.setAttribute('data-tooltip', 'bestTrade');
+      }
     }
 
     if (elements.worstTrade) {
       elements.worstTrade.textContent = this.formatCurrency(stats.worstTrade)
+      const worstCard = elements.worstTrade.closest('.metric-card');
+      if (worstCard && !worstCard.hasAttribute('data-tooltip')) {
+        worstCard.setAttribute('data-tooltip', 'worstTrade');
+      }
     }
 
     if (elements.avgWin) {
       elements.avgWin.textContent = this.formatCurrency(stats.avgWin)
+      const avgWinCard = elements.avgWin.closest('.metric-card');
+      if (avgWinCard && !avgWinCard.hasAttribute('data-tooltip')) {
+        avgWinCard.setAttribute('data-tooltip', 'avgWin');
+      }
     }
 
     if (elements.avgLoss) {
       elements.avgLoss.textContent = this.formatCurrency(stats.avgLoss)
+      const avgLossCard = elements.avgLoss.closest('.metric-card');
+      if (avgLossCard && !avgLossCard.hasAttribute('data-tooltip')) {
+        avgLossCard.setAttribute('data-tooltip', 'avgLoss');
+      }
+    }
+    
+    // Initialize tooltips after updating metrics
+    if (window.tooltipManager) {
+      window.tooltipManager.attachTooltips();
     }
   }
 

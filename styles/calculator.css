@@ -1,0 +1,424 @@
+/* styles/calculator.css - Trading Calculator Styles */
+
+/* Calculator Modal Specific */
+.calculator-body {
+    padding: 0;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Calculator Sections */
+.calc-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.calc-section:last-of-type {
+    border-bottom: none;
+}
+
+.calc-section-title {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.calc-section-title i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Calculator Grid */
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* Calculator Fields */
+.calc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.calc-field label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.field-hint {
+    font-size: 11px;
+    color: var(--muted-foreground);
+    font-style: italic;
+    margin-top: -4px;
+}
+
+.calc-field input,
+.calc-field select {
+    padding: 10px 12px;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--foreground);
+    transition: all 0.2s ease;
+}
+
+.calc-field input:focus,
+.calc-field select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--background);
+}
+
+
+
+/* Order Type Toggle */
+.order-type-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--muted);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.order-btn {
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.order-btn.buy.active {
+    background: #10b981;
+    color: white;
+}
+
+.order-btn.sell.active {
+    background: #ef4444;
+    color: white;
+}
+
+.order-btn:not(.active):hover {
+    background: var(--accent);
+}
+
+/* Results Section */
+.results-section {
+    background: var(--accent);
+}
+
+.calc-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.result-card {
+    background: var(--card);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.result-card.positive {
+    border-left: 3px solid #10b981;
+}
+
+.result-card.negative {
+    border-left: 3px solid #ef4444;
+}
+
+.result-label {
+    font-size: 11px;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.result-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--foreground);
+}
+
+.result-card.positive .result-value {
+    color: #10b981;
+}
+
+.result-card.negative .result-value {
+    color: #ef4444;
+}
+
+/* Risk/Reward Color Coding */
+.result-value.good-rr {
+    color: #10b981 !important;
+}
+
+.result-value.bad-rr {
+    color: #ef4444 !important;
+}
+
+/* Risk Mode Indicator */
+.risk-mode-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--muted);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.risk-mode-indicator .mode-label {
+    color: var(--muted-foreground);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.risk-mode-indicator .mode-value {
+    color: var(--foreground);
+    font-weight: 700;
+    padding: 2px 8px;
+    background: var(--accent);
+    border-radius: 4px;
+}
+
+.risk-mode-indicator.amount-mode {
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid var(--primary);
+}
+
+.risk-mode-indicator.amount-mode .mode-value {
+    background: var(--primary);
+    color: white;
+}
+
+/* Recommended Lot Size */
+.calc-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.recommended-lot {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--accent);
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.recommended-lot.highlight {
+    background: rgba(74, 222, 128, 0.1);
+    animation: pulse 1s ease-in-out;
+}
+
+.recommended-lot span {
+    flex: 1;
+    color: var(--foreground);
+}
+
+.btn-use-lot {
+    padding: 8px;
+    background: var(--primary);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-use-lot:hover {
+    background: var(--primary-hover, #3ec97a);
+    transform: scale(1.05);
+}
+
+.btn-use-lot svg {
+    width: 20px;
+    height: 20px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Risk Input Active State */
+#calcRiskPercent:focus,
+#calcRiskAmount:focus {
+    background: var(--background);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
+}
+
+/* Active risk mode styling - Modern browsers with :has() support */
+@supports selector(:has(*)) {
+    .calc-field:has(#calcRiskPercent:focus),
+    .calc-field:has(#calcRiskAmount:focus) {
+        position: relative;
+    }
+    
+    .calc-field:has(#calcRiskPercent:focus)::before,
+    .calc-field:has(#calcRiskAmount:focus)::before {
+        content: 'ACTIVO';
+        position: absolute;
+        top: -8px;
+        right: 8px;
+        background: var(--primary);
+        color: white;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+}
+
+/* Alternative for browsers without :has() support */
+.calc-field.risk-active {
+    position: relative;
+}
+
+.calc-field.risk-active::before {
+    content: 'ACTIVO';
+    position: absolute;
+    top: -8px;
+    right: 8px;
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Action Buttons */
+.calc-actions {
+    padding: 20px;
+    background: var(--muted);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .calculator-body {
+        max-height: 85vh;
+    }
+    
+    .calc-section {
+        padding: 16px;
+    }
+    
+    .calc-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .calc-results {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .calc-actions {
+        flex-direction: column;
+    }
+    
+    .calc-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .calc-results {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-card {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .result-value {
+        font-size: 16px;
+    }
+}
+
+/* Dark Mode Specific */
+[data-theme="dark"] .calc-field input,
+[data-theme="dark"] .calc-field select {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .calc-field input:focus,
+[data-theme="dark"] .calc-field select:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .result-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollbar Styling */
+.calculator-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.calculator-body::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 4px;
+}
+
+.calculator-body::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 4px;
+}
+
+.calculator-body::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+}
+
+/* Print Styles */
+@media print {
+    #calculatorModal {
+        display: none !important;
+    }
+}

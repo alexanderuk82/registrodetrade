@@ -36,7 +36,18 @@ class TradingJournalApp {
             // Initialize charts manager
             this.modules.charts.init();
             
-            // Now update dashboard with loaded data
+            // Initialize custom signals if on new-trade page
+            const currentPage = window.location.hash.replace('#', '') || 'dashboard';
+            if (currentPage === 'new-trade') {
+                this.modules.trades.initCustomSignals();
+            }
+            
+            // Initialize calculator
+            if (window.tradingCalculator) {
+                window.tradingCalculator.init();
+            }
+            
+            // Update dashboard with loaded data
             setTimeout(() => {
                 this.modules.dashboard.update();
                 // Ensure charts are updated after dashboard
