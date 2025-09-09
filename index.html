@@ -659,6 +659,137 @@
     <!-- Hidden file input for import -->
     <input type="file" id="importFile" accept=".json" style="display: none;">
 
+    <!-- Edit Trade Modal -->
+    <div id="editTradeModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>
+                    <i data-lucide="edit"></i>
+                    Editar Trade
+                </h3>
+                <button type="button" class="modal-close" id="closeEditModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editTradeForm">
+                    <input type="hidden" id="editTradeId">
+                    
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h4>Información Básica</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editTradeDate">Fecha</label>
+                                <input type="date" id="editTradeDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editEntryTime">Hora Entrada</label>
+                                <input type="time" id="editEntryTime">
+                            </div>
+                            <div class="form-group">
+                                <label for="editExitTime">Hora Salida</label>
+                                <input type="time" id="editExitTime">
+                            </div>
+                            <div class="form-group">
+                                <label for="editSymbol">Par/Activo</label>
+                                <input type="text" id="editSymbol" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editTimeframe">Timeframe</label>
+                                <select id="editTimeframe">
+                                    <option value="15m">15m</option>
+                                    <option value="30m">30m</option>
+                                    <option value="1H">1H</option>
+                                    <option value="4H">4H</option>
+                                    <option value="1D">1D</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editDirection">Dirección</label>
+                                <select id="editDirection">
+                                    <option value="long">LONG</option>
+                                    <option value="short">SHORT</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trade Details -->
+                    <div class="form-section">
+                        <h4>Detalles del Trade</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editEntryPrice">Precio Entrada</label>
+                                <input type="number" id="editEntryPrice" step="0.00001" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editStopLoss">Stop Loss</label>
+                                <input type="number" id="editStopLoss" step="0.00001">
+                            </div>
+                            <div class="form-group">
+                                <label for="editTakeProfit">Take Profit</label>
+                                <input type="number" id="editTakeProfit" step="0.00001">
+                            </div>
+                            <div class="form-group">
+                                <label for="editExitPrice">Precio Salida</label>
+                                <input type="number" id="editExitPrice" step="0.00001">
+                            </div>
+                            <div class="form-group">
+                                <label for="editVolume">Lote/Volumen</label>
+                                <input type="number" id="editVolume" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="editPnl">P&L (£)</label>
+                                <input type="number" id="editPnl" step="0.01" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Signals -->
+                    <div class="form-section">
+                        <h4>Señales Utilizadas</h4>
+                        <div class="signals-container" id="editSignalsContainer">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="editSignals" value="order-flow" id="editOrderFlow">
+                                <span>Order Flow</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="editSignals" value="indicator-tv" id="editIndicatorTV">
+                                <span>Indicator Trading View</span>
+                            </label>
+                            <div id="editCustomSignals"></div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="form-section">
+                        <h4>Análisis</h4>
+                        <div class="form-group">
+                            <label for="editEntryReason">¿Por qué entraste?</label>
+                            <textarea id="editEntryReason" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLessons">¿Qué aprendiste?</label>
+                            <textarea id="editLessons" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelEditModal">
+                    <i data-lucide="x"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="saveEditTrade">
+                    <i data-lucide="save"></i>
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Indicator Modal -->
     <div id="customIndicatorModal" class="modal">
         <div class="modal-backdrop"></div>

@@ -577,8 +577,8 @@ class TradesManager {
                 ${pnlPercent}%
             </td>
             <td>
-                <button class="icon-button" onclick="app.modules.trades.viewTrade('${trade.id}')" title="Ver detalles">
-                    <i data-lucide="eye"></i>
+                <button class="icon-button" onclick="app.modules.trades.viewTrade('${trade.id}')" title="Editar trade">
+                    <i data-lucide="edit-2"></i>
                 </button>
                 <button class="icon-button" onclick="app.modules.trades.deleteTrade('${trade.id}')" title="Eliminar">
                     <i data-lucide="trash-2"></i>
@@ -694,13 +694,217 @@ class TradesManager {
     
     viewTrade(id) {
         const trade = app.modules.storage?.getTrade(id);
-        if (trade) {
-            // Show trade details (you can implement a modal here)
-            console.log('Trade details:', trade);
-            if (app.modules.utils) {
-                app.modules.utils.showToast(`Trade ${trade.symbol}: $${trade.pnl}`, 'info');
-            }
+        if (!trade) {
+            app.modules.utils?.showToast('Trade no encontrado', 'error');
+            return;
         }
+        
+        // Open edit modal with trade data
+        this.openEditModal(trade);
+    }
+    
+    // Open edit modal with trade data
+    openEditModal(trade) {
+        const modal = document.getElementById('editTradeModal');
+        if (!modal) return;
+        
+        // Fill form with trade data
+        document.getElementById('editTradeId').value = trade.id;
+        document.getElementById('editTradeDate').value = trade.date || '';
+        document.getElementById('editEntryTime').value = trade.entryTime || '';
+        document.getElementById('editExitTime').value = trade.exitTime || '';
+        document.getElementById('editSymbol').value = trade.symbol || '';
+        document.getElementById('editTimeframe').value = trade.timeframe || '15m';
+        document.getElementById('editDirection').value = trade.direction || 'long';
+        document.getElementById('editEntryPrice').value = trade.entryPrice || '';
+        document.getElementById('editStopLoss').value = trade.stopLoss || '';
+        document.getElementById('editTakeProfit').value = trade.takeProfit || '';
+        document.getElementById('editExitPrice').value = trade.exitPrice || '';
+        document.getElementById('editVolume').value = trade.volume || '';
+        document.getElementById('editPnl').value = trade.pnl || '';
+        document.getElementById('editEntryReason').value = trade.entryReason || '';
+        document.getElementById('editLessons').value = trade.lessons || '';
+        
+        // Handle signals
+        document.getElementById('editOrderFlow').checked = trade.signals?.includes('order-flow') || false;
+        document.getElementById('editIndicatorTV').checked = trade.signals?.includes('indicator-tv') || false;
+        
+        // Load custom signals
+        this.loadEditCustomSignals(trade.signals);
+        
+        // Show modal
+        modal.classList.add('active');
+        
+        // Update icons
+        lucide.createIcons();
+        
+        // Setup modal event listeners if not already done
+        this.setupEditModalListeners();
+    }
+    
+    // Load custom signals in edit modal
+    loadEditCustomSignals(tradeSignals) {
+        const container = document.getElementById('editCustomSignals');
+        if (!container || !app.modules.storage) return;
+        
+        container.innerHTML = '';
+        
+        const settings = app.modules.storage.getSettings();
+        const customIndicators = settings.customIndicators || [];
+        
+        customIndicators.forEach(indicator => {
+            const label = document.createElement('label');
+            label.className = 'checkbox-label';
+            
+            const isChecked = tradeSignals?.some(s => 
+                s === `custom:${indicator.name}` || s === indicator.id
+            ) || false;
+            
+            label.innerHTML = `
+                <input type="checkbox" name="editCustomSignals" 
+                       value="${indicator.id}" 
+                       ${isChecked ? 'checked' : ''}>
+                <span>${indicator.name}</span>
+            `;
+            
+            container.appendChild(label);
+        });
+    }
+    
+    // Setup edit modal event listeners
+    setupEditModalListeners() {
+        // Check if listeners are already setup
+        if (this.editModalListenersSetup) return;
+        
+        const modal = document.getElementById('editTradeModal');
+        const closeBtn = document.getElementById('closeEditModal');
+        const cancelBtn = document.getElementById('cancelEditModal');
+        const saveBtn = document.getElementById('saveEditTrade');
+        const backdrop = modal?.querySelector('.modal-backdrop');
+        
+        // Close modal handlers
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeEditModal());
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.closeEditModal());
+        }
+        
+        if (backdrop) {
+            backdrop.addEventListener('click', () => this.closeEditModal());
+        }
+        
+        // Save trade handler
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveEditedTrade());
+        }
+        
+        // Handle Enter key in form
+        const form = document.getElementById('editTradeForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveEditedTrade();
+            });
+        }
+        
+        this.editModalListenersSetup = true;
+    }
+    
+    // Close edit modal
+    closeEditModal() {
+        const modal = document.getElementById('editTradeModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+    
+    // Save edited trade
+    saveEditedTrade() {
+        const tradeId = document.getElementById('editTradeId').value;
+        
+        if (!tradeId || !app.modules.storage) {
+            app.modules.utils?.showToast('Error al guardar el trade', 'error');
+            return;
+        }
+        
+        // Get current trade
+        const currentTrade = app.modules.storage.getTrade(tradeId);
+        if (!currentTrade) {
+            app.modules.utils?.showToast('Trade no encontrado', 'error');
+            return;
+        }
+        
+        // Collect updated data
+        const updatedData = {
+            ...currentTrade,
+            date: document.getElementById('editTradeDate').value || currentTrade.date,
+            entryTime: document.getElementById('editEntryTime').value || '',
+            exitTime: document.getElementById('editExitTime').value || '',
+            symbol: document.getElementById('editSymbol').value || '',
+            timeframe: document.getElementById('editTimeframe').value || '15m',
+            direction: document.getElementById('editDirection').value || 'long',
+            entryPrice: parseFloat(document.getElementById('editEntryPrice').value) || 0,
+            stopLoss: parseFloat(document.getElementById('editStopLoss').value) || 0,
+            takeProfit: parseFloat(document.getElementById('editTakeProfit').value) || 0,
+            exitPrice: parseFloat(document.getElementById('editExitPrice').value) || 0,
+            volume: parseFloat(document.getElementById('editVolume').value) || 0,
+            pnl: parseFloat(document.getElementById('editPnl').value) || 0,
+            entryReason: document.getElementById('editEntryReason').value || '',
+            lessons: document.getElementById('editLessons').value || '',
+            signals: this.getEditedSignals(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Validate required fields
+        if (!updatedData.symbol || !updatedData.date) {
+            app.modules.utils?.showToast('Por favor completa los campos requeridos', 'error');
+            return;
+        }
+        
+        // Update trade in storage
+        if (app.modules.storage.updateTrade(tradeId, updatedData)) {
+            app.modules.utils?.showToast('Trade actualizado exitosamente', 'success');
+            
+            // Close modal
+            this.closeEditModal();
+            
+            // Refresh history table
+            this.updateHistory();
+            
+            // Update dashboard if needed
+            if (app.modules.dashboard) {
+                app.modules.dashboard.update();
+            }
+        } else {
+            app.modules.utils?.showToast('Error al actualizar el trade', 'error');
+        }
+    }
+    
+    // Get edited signals from form
+    getEditedSignals() {
+        const signals = [];
+        
+        // Get main signals
+        if (document.getElementById('editOrderFlow')?.checked) {
+            signals.push('order-flow');
+        }
+        if (document.getElementById('editIndicatorTV')?.checked) {
+            signals.push('indicator-tv');
+        }
+        
+        // Get custom signals
+        document.querySelectorAll('input[name="editCustomSignals"]:checked').forEach(checkbox => {
+            const settings = app.modules.storage?.getSettings();
+            const customIndicators = settings?.customIndicators || [];
+            const indicator = customIndicators.find(ind => ind.id === checkbox.value);
+            if (indicator) {
+                signals.push(`custom:${indicator.name}`);
+            }
+        });
+        
+        return signals;
     }
     
     deleteTrade(id) {

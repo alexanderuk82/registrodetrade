@@ -80,10 +80,10 @@ class StorageManager {
         ...updates,
         updatedAt: new Date().toISOString()
       }
-      this.save()
-      return this.data.trades[index]
+      const saved = this.save()
+      return saved ? this.data.trades[index] : false
     }
-    return null
+    return false
   }
 
   deleteTrade(id) {
