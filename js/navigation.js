@@ -131,6 +131,14 @@ class NavigationManager {
           app.modules.settings.loadSettings()
         }
         break
+      case "paper-trading":
+        // Dar tiempo para que el DOM se actualice
+        setTimeout(() => {
+          if (window.PaperTrading) {
+            window.PaperTrading.init()
+          }
+        }, 50)
+        break
     }
 
     // Update Lucide icons

@@ -47,6 +47,9 @@ class TradingJournalApp {
                 window.tradingCalculator.init();
             }
             
+            // Paper Trading se inicializa cuando se navega a su página
+            // No inicializar aquí para evitar errores en el DOM
+            
             // Update dashboard with loaded data
             setTimeout(() => {
                 this.modules.dashboard.update();

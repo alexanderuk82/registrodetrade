@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="styles/day-performance.css">
     <link rel="stylesheet" href="styles/tooltip.css">
     <link rel="stylesheet" href="styles/calculator.css">
+    <link rel="stylesheet" href="styles/paper-trading.css">
 </head>
 <body>
     <div class="app-container">
@@ -67,6 +68,10 @@
                 <a href="#calculator" class="nav-item" data-page="calculator">
                     <i data-lucide="calculator"></i>
                     <span>Calculadora</span>
+                </a>
+                <a href="#paper-trading" class="nav-item" data-page="paper-trading">
+                    <i data-lucide="gamepad-2"></i>
+                    <span>Paper Trading</span>
                 </a>
                 <a href="#analytics" class="nav-item" data-page="analytics">
                     <i data-lucide="bar-chart-3"></i>
@@ -542,6 +547,194 @@
                 </div>
             </section>
 
+            <!-- Paper Trading Page -->
+            <section id="paper-trading" class="page">
+                <header class="page-header">
+                    <h1>Paper Trading</h1>
+                    <p class="page-subtitle">Simulador rápido para probar estrategias sin riesgo</p>
+                </header>
+
+                <!-- Stats Overview -->
+                <div class="paper-stats-grid">
+                    <div class="paper-stat-card">
+                        <span class="paper-stat-label">Total Trades</span>
+                        <span class="paper-stat-value" id="paperTotalTrades">0</span>
+                    </div>
+                    <div class="paper-stat-card">
+                        <span class="paper-stat-label">Ganados</span>
+                        <span class="paper-stat-value positive" id="paperWins">0</span>
+                    </div>
+                    <div class="paper-stat-card">
+                        <span class="paper-stat-label">Perdidos</span>
+                        <span class="paper-stat-value negative" id="paperLosses">0</span>
+                    </div>
+                    <div class="paper-stat-card">
+                        <span class="paper-stat-label">Win Rate</span>
+                        <span class="paper-stat-value" id="paperWinRate">0%</span>
+                    </div>
+                    <div class="paper-stat-card">
+                        <span class="paper-stat-label">Total Pips</span>
+                        <span class="paper-stat-value" id="paperTotalPnL">0</span>
+                    </div>
+                </div>
+
+                <div class="paper-trading-container">
+                    <!-- Quick Trade Panel -->
+                    <div class="quick-trade-panel">
+                        <div class="quick-trade-header">
+                            <h3>
+                                <i data-lucide="zap"></i>
+                                Trade Rápido
+                            </h3>
+                        </div>
+
+                        <!-- Instrument Selection -->
+                        <div class="instrument-selection">
+                            <div class="instrument-group full-width">
+                                <label for="paperInstrument">Instrumento</label>
+                                <select id="paperInstrument">
+                                    <option value="XAUUSD">XAUUSD (Oro)</option>
+                                    <option value="EURUSD">EURUSD</option>
+                                    <option value="GBPUSD">GBPUSD</option>
+                                    <option value="USDJPY">USDJPY</option>
+                                    <option value="EURJPY">EURJPY</option>
+                                    <option value="AUDJPY">AUDJPY</option>
+                                    <option value="AUDUSD">AUDUSD</option>
+                                    <option value="USDCHF">USDCHF</option>
+                                    <option value="USDCAD">USDCAD</option>
+                                    <option value="GBPCAD">GBPCAD</option>
+                                    <option value="EURPLN">EURPLN</option>
+                                    <option value="BTCUSD">BTCUSD</option>
+                                    <option value="ETHUSD">ETHUSD</option>
+                                    <option value="US30">US30 (Dow Jones)</option>
+                                    <option value="NAS100">NAS100 (Nasdaq)</option>
+                                    <option value="_ADD_NEW_">➕ Añadir Par...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Trade Actions -->
+                        <div class="trade-actions">
+                            <button class="action-btn buy-btn" id="quickBuyBtn">
+                                <i data-lucide="trending-up"></i>
+                                BUY
+                            </button>
+                            <button class="action-btn sell-btn" id="quickSellBtn">
+                                <i data-lucide="trending-down"></i>
+                                SELL
+                            </button>
+                        </div>
+
+                        <!-- Close Actions -->
+                        <div class="close-actions">
+                            <button class="close-btn tp-btn" id="closeTPBtn" disabled>
+                                <i data-lucide="check-circle"></i>
+                                TP
+                            </button>
+                            <button class="close-btn sl-btn" id="closeSLBtn" disabled>
+                                <i data-lucide="x-circle"></i>
+                                SL
+                            </button>
+                            <button class="close-btn be-btn" id="closeBEBtn" disabled>
+                                <i data-lucide="minus-circle"></i>
+                                BE
+                            </button>
+                        </div>
+
+                        <!-- Strategy Selection -->
+                        <div class="strategy-section">
+                            <div class="strategy-select-group">
+                                <div class="instrument-group">
+                                    <label for="strategySelect">Estrategia</label>
+                                    <select id="strategySelect">
+                                        <option value="">Sin estrategia</option>
+                                    </select>
+                                </div>
+                                <div class="instrument-group">
+                                    <label>&nbsp;</label>
+                                    <button class="add-strategy-btn" id="addStrategyBtn">
+                                        <i data-lucide="plus"></i>
+                                        Nueva
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="add-strategy-group" style="display: none;" id="addStrategyGroup">
+                                <input type="text" id="newStrategyInput" placeholder="Nombre de la estrategia">
+                                <button class="add-strategy-btn" id="confirmAddStrategy">
+                                    <i data-lucide="check"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="notes-section">
+                            <label for="paperNotes">Notas rápidas (opcional)</label>
+                            <textarea id="paperNotes" placeholder="Ej: Ruptura de resistencia, divergencia RSI..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Active Trade Display -->
+                    <div class="active-trade-section">
+                        <div class="quick-trade-header">
+                            <h3>
+                                <i data-lucide="activity"></i>
+                                Trade Activo
+                            </h3>
+                        </div>
+                        <div id="activeTradeInfo">
+                            <div class="no-active-trade">
+                                <i data-lucide="info"></i>
+                                <p>No hay trade activo</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Trades -->
+                    <div class="recent-trades-section">
+                        <div class="recent-trades-header">
+                            <h3>
+                                <i data-lucide="clock"></i>
+                                Trades Recientes
+                            </h3>
+                            <button class="btn btn-secondary" onclick="PaperTrading.exportData()">
+                                <i data-lucide="download"></i>
+                                Exportar
+                            </button>
+                        </div>
+                        <div id="paperRecentTrades">
+                            <div class="empty-state">
+                                <i data-lucide="inbox"></i>
+                                <p>No hay trades recientes</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Strategy Performance -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>
+                                <i data-lucide="bar-chart-2"></i>
+                                Rendimiento por Estrategia
+                            </h2>
+                        </div>
+                        <div id="strategyPerformance" class="strategy-performance">
+                            <div class="empty-state">
+                                <i data-lucide="bar-chart-2"></i>
+                                <p>No hay estrategias registradas</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reset Button -->
+                    <div class="reset-section">
+                        <button class="reset-btn" id="resetPaperBtn">
+                            <i data-lucide="refresh-cw"></i>
+                            Resetear Paper Trading
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Analytics Page -->
             <section id="analytics" class="page">
                 <header class="page-header">
@@ -844,6 +1037,7 @@
     <script src="js/settings.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/paper-trading/paperTrading.js"></script>
     
     <!-- PWA Service Worker Registration -->
     <script>
