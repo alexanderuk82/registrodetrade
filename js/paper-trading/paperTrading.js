@@ -18,10 +18,10 @@ const PaperTrading = (function() {
         maxTradeDuration: 8 * 60 * 60 * 1000, // 8 horas en ms
         autoCloseWarning: 7.5 * 60 * 60 * 1000, // Advertencia a las 7.5 horas
         instruments: [
-            'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY',
+            'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY',
             'EURJPY', 'AUDJPY', 'AUDUSD', 'USDCHF',
             'USDCAD', 'GBPCAD', 'EURPLN', 'BTCUSD',
-            'ETHUSD', 'US30', 'NAS100'
+            'ETHUSD', 'US30', 'US500', 'NAS100'
         ],
         customInstruments: [] // Para pares añadidos por el usuario
     };
@@ -279,12 +279,14 @@ const PaperTrading = (function() {
         // Precios base simulados
         const basePrices = {
             'XAUUSD': 2050.00,
+            'XAGUSD': 30.50,
             'EURUSD': 1.0850,
             'GBPUSD': 1.2750,
             'USDJPY': 148.50,
             'BTCUSD': 43500.00,
             'ETHUSD': 2250.00,
             'US30': 38500.00,
+            'US500': 6000.00,
             'NAS100': 17250.00
         };
         
