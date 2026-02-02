@@ -10,6 +10,7 @@ const PaperTrading = (function() {
     let strategies = [];
     let selectedStrategy = null;
     let tradeTimers = {}; // Timers individuales para cada trade
+    let pendingReviewTrade = null; // Trade esperando review antes de guardar
     
     // Configuración por defecto
     const config = {
@@ -45,6 +46,7 @@ const PaperTrading = (function() {
                 setTimeout(() => {
                     updateStats();
                     renderRecentTrades();
+                    renderReviews();
                     updateActiveTradesUI();
                     generateSummaryCharts();
                 }, 100);
@@ -182,10 +184,10 @@ const PaperTrading = (function() {
             showToast('❌ Trade no encontrado', 'error');
             return;
         }
-        
+
         const trade = activeTrades[tradeIndex];
         const exitPrice = getCurrentPrice(trade.instrument);
-        
+
         // Usar pips personalizados si se proporcionan, sino calcular según outcome
         let pips;
         if (customPips !== null && customPips !== undefined) {
@@ -193,9 +195,9 @@ const PaperTrading = (function() {
         } else {
             pips = calculatePips(trade, exitPrice, outcome);
         }
-        
+
         const pnl = calculatePnL(trade, pips);
-        
+
         // Completar información del trade
         trade.exitTime = new Date().toISOString();
         trade.exitPrice = exitPrice;
@@ -204,35 +206,183 @@ const PaperTrading = (function() {
         trade.pnl = pnl;
         trade.status = 'closed';
         trade.duration = calculateDuration(trade.entryTime, trade.exitTime);
-        
+        trade.tradeIndex = tradeIndex; // Guardar índice para después
+
+        // Si es TP o SL, mostrar modal de review antes de guardar
+        if (outcome === 'TP' || outcome === 'SL') {
+            pendingReviewTrade = trade;
+            showTradeReviewModal(trade);
+            return; // No continuar hasta que se complete el review
+        }
+
+        // Para BE, TIMEOUT, etc. - guardar directamente sin review
+        finalizeTrade(trade, tradeIndex);
+    }
+
+    /**
+     * Finalizar y guardar el trade (después del review o directamente)
+     */
+    function finalizeTrade(trade, tradeIndex) {
         // Agregar a historial
         paperTrades.push(trade);
-        
+
         // Eliminar de trades activos
         activeTrades.splice(tradeIndex, 1);
-        
+
         // Detener timer de este trade
-        stopTradeTimer(tradeId);
-        
+        stopTradeTimer(trade.id);
+
         // Actualizar UI
         updateActiveTradesUI();
         updateStats();
         renderRecentTrades();
-        
+        renderReviews();
+
         // Mostrar resultado con emojis
-        const resultClass = pnl >= 0 ? 'success' : 'error';
-        const emoji = pnl >= 0 ? '✅' : '❌';
-        const outcomeText = outcome === 'NO_ACTION' ? 'TIMEOUT' : outcome;
-        const pipsText = pnl !== 0 ? `${pnl > 0 ? '+' : ''}${pnl.toFixed(0)} pips` : 'Break Even';
+        const resultClass = trade.pnl >= 0 ? 'success' : 'error';
+        const emoji = trade.pnl >= 0 ? '✅' : '❌';
+        const outcomeText = trade.outcome === 'NO_ACTION' ? 'TIMEOUT' : trade.outcome;
+        const pipsText = trade.pnl !== 0 ? `${trade.pnl > 0 ? '+' : ''}${trade.pnl.toFixed(0)} pips` : 'Break Even';
         showToast(`${emoji} ${trade.instrument} cerrado: ${outcomeText} | ${pipsText}`, resultClass);
-        
+
         // Guardar
         savePaperTrades();
-        
-        // Actualizar estadísticas de estrategia (ahora siempre tiene estrategia)
+
+        // Actualizar estadísticas de estrategia
         if (trade.strategy) {
-            updateStrategyStats(trade.strategy, pnl >= 0, pips);
+            updateStrategyStats(trade.strategy, trade.pnl >= 0, trade.pips);
         }
+    }
+
+    /**
+     * Mostrar modal de Trade Review
+     */
+    function showTradeReviewModal(trade) {
+        const modal = document.getElementById('tradeReviewModal');
+        if (!modal) return;
+
+        // Configurar badge WIN/LOSS
+        const badge = document.getElementById('reviewBadge');
+        if (badge) {
+            const isWin = trade.outcome === 'TP';
+            badge.textContent = isWin ? 'WIN' : 'LOSS';
+            badge.className = `review-badge ${isWin ? 'win' : 'loss'}`;
+        }
+
+        // Resetear todos los botones
+        modal.querySelectorAll('.btn-yesno').forEach(btn => btn.classList.remove('selected'));
+        modal.querySelectorAll('.btn-emotion').forEach(btn => btn.classList.remove('selected'));
+
+        // Limpiar notas
+        const notesInput = document.getElementById('reviewNotes');
+        if (notesInput) notesInput.value = '';
+
+        // Setup event listeners para botones Sí/No
+        modal.querySelectorAll('.btn-yesno').forEach(btn => {
+            btn.onclick = function() {
+                const question = this.dataset.question;
+                // Deseleccionar otros botones de la misma pregunta
+                modal.querySelectorAll(`.btn-yesno[data-question="${question}"]`).forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+            };
+        });
+
+        // Setup event listeners para emociones
+        modal.querySelectorAll('.btn-emotion').forEach(btn => {
+            btn.onclick = function() {
+                modal.querySelectorAll('.btn-emotion').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+            };
+        });
+
+        // Botón Saltar
+        const skipBtn = document.getElementById('skipReviewBtn');
+        if (skipBtn) {
+            skipBtn.onclick = function() {
+                hideTradeReviewModal();
+                if (pendingReviewTrade) {
+                    finalizeTrade(pendingReviewTrade, pendingReviewTrade.tradeIndex);
+                    pendingReviewTrade = null;
+                }
+            };
+        }
+
+        // Botón Guardar Review
+        const saveBtn = document.getElementById('saveReviewBtn');
+        if (saveBtn) {
+            saveBtn.onclick = function() {
+                saveTradeReview();
+            };
+        }
+
+        // Mostrar modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Actualizar iconos Lucide
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+    }
+
+    /**
+     * Ocultar modal de Trade Review
+     */
+    function hideTradeReviewModal() {
+        const modal = document.getElementById('tradeReviewModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    /**
+     * Guardar review del trade
+     */
+    function saveTradeReview() {
+        if (!pendingReviewTrade) return;
+
+        const modal = document.getElementById('tradeReviewModal');
+
+        // Recopilar respuestas
+        const review = {
+            timestamp: new Date().toISOString(),
+            followedStrategy: getSelectedValue(modal, 'followedStrategy'),
+            wasFomo: getSelectedValue(modal, 'wasFomo'),
+            wasEmotional: getSelectedValue(modal, 'wasEmotional'),
+            correctEntry: getSelectedValue(modal, 'correctEntry'),
+            respectedSL: getSelectedValue(modal, 'respectedSL'),
+            movedSLTP: getSelectedValue(modal, 'movedSLTP'),
+            exitedEarly: getSelectedValue(modal, 'exitedEarly'),
+            emotion: getSelectedEmotion(modal),
+            notes: document.getElementById('reviewNotes')?.value || ''
+        };
+
+        // Agregar review al trade
+        pendingReviewTrade.review = review;
+
+        // Cerrar modal y finalizar trade
+        hideTradeReviewModal();
+        finalizeTrade(pendingReviewTrade, pendingReviewTrade.tradeIndex);
+        pendingReviewTrade = null;
+
+        showToast('📝 Review guardado exitosamente', 'success');
+    }
+
+    /**
+     * Obtener valor seleccionado de botones Sí/No
+     */
+    function getSelectedValue(modal, question) {
+        const selected = modal.querySelector(`.btn-yesno[data-question="${question}"].selected`);
+        return selected ? selected.dataset.value : null;
+    }
+
+    /**
+     * Obtener emoción seleccionada
+     */
+    function getSelectedEmotion(modal) {
+        const selected = modal.querySelector('.btn-emotion.selected');
+        return selected ? selected.dataset.emotion : null;
     }
 
     /**
@@ -1421,7 +1571,386 @@ const PaperTrading = (function() {
         const pipSizeDisplay = pipSize >= 0.01 ? pipSize : pipSize.toFixed(4);
         showToast(`📏 ${percent}% = ${pips} pips (${trade.instrument}, pip=${pipSizeDisplay})`, 'info');
     }
-    
+
+    /**
+     * Renderizar historial de reviews
+     */
+    function renderReviews(filteredTrades = null) {
+        const container = document.getElementById('tradeReviewsList');
+        const statsContainer = document.getElementById('reviewsStats');
+        if (!container) return;
+
+        // Obtener trades con review
+        const tradesWithReview = (filteredTrades || paperTrades).filter(t => t.review);
+
+        if (tradesWithReview.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i data-lucide="clipboard-list"></i>
+                    <p>No hay reviews registrados</p>
+                </div>
+            `;
+            if (statsContainer) statsContainer.innerHTML = '';
+            if (window.lucide) window.lucide.createIcons();
+            return;
+        }
+
+        // Calcular estadísticas de reviews
+        renderReviewStats(tradesWithReview, statsContainer);
+
+        // Renderizar lista
+        container.innerHTML = tradesWithReview
+            .sort((a, b) => new Date(b.exitTime) - new Date(a.exitTime))
+            .slice(0, 20) // Mostrar últimos 20
+            .map(trade => renderReviewItem(trade))
+            .join('');
+
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    /**
+     * Renderizar estadísticas de reviews
+     */
+    function renderReviewStats(trades, container) {
+        if (!container) return;
+
+        const stats = {
+            total: trades.length,
+            followedStrategy: trades.filter(t => t.review?.followedStrategy === 'yes').length,
+            fomo: trades.filter(t => t.review?.wasFomo === 'yes').length,
+            emotional: trades.filter(t => t.review?.wasEmotional === 'yes').length,
+            movedSLTP: trades.filter(t => t.review?.movedSLTP === 'yes').length
+        };
+
+        const followedPct = stats.total > 0 ? Math.round((stats.followedStrategy / stats.total) * 100) : 0;
+        const fomoPct = stats.total > 0 ? Math.round((stats.fomo / stats.total) * 100) : 0;
+        const emotionalPct = stats.total > 0 ? Math.round((stats.emotional / stats.total) * 100) : 0;
+
+        container.innerHTML = `
+            <div class="review-stat">
+                <span class="review-stat-value">${stats.total}</span>
+                <span class="review-stat-label">Reviews</span>
+            </div>
+            <div class="review-stat">
+                <span class="review-stat-value positive">${followedPct}%</span>
+                <span class="review-stat-label">Siguió Estrategia</span>
+            </div>
+            <div class="review-stat">
+                <span class="review-stat-value warning">${fomoPct}%</span>
+                <span class="review-stat-label">FOMO</span>
+            </div>
+            <div class="review-stat">
+                <span class="review-stat-value negative">${emotionalPct}%</span>
+                <span class="review-stat-label">Emocional</span>
+            </div>
+        `;
+    }
+
+    /**
+     * Renderizar item individual de review
+     */
+    function renderReviewItem(trade) {
+        const review = trade.review;
+        const isWin = trade.outcome === 'TP';
+        const pipsClass = trade.pips >= 0 ? 'positive' : 'negative';
+        const pipsDisplay = trade.pips >= 0 ? `+${trade.pips}` : trade.pips;
+
+        const emotionEmojis = {
+            confident: '😎',
+            neutral: '😐',
+            fear: '😰',
+            greed: '🤑',
+            frustration: '😤',
+            revenge: '😡'
+        };
+
+        const questionLabels = {
+            followedStrategy: 'Siguió estrategia',
+            wasFomo: 'FOMO',
+            wasEmotional: 'Emocional',
+            correctEntry: 'Entry correcto',
+            respectedSL: 'Respetó SL',
+            movedSLTP: 'Movió SL/TP',
+            exitedEarly: 'Salió antes'
+        };
+
+        // Generar tags de respuestas
+        const answerTags = Object.entries(questionLabels)
+            .filter(([key]) => review[key])
+            .map(([key, label]) => {
+                const value = review[key];
+                const isYes = value === 'yes';
+                const icon = isYes ? 'check' : 'x';
+                return `
+                    <span class="review-answer-tag ${isYes ? 'yes' : 'no'}">
+                        <i data-lucide="${icon}"></i>
+                        ${label}
+                    </span>
+                `;
+            })
+            .join('');
+
+        const date = new Date(trade.exitTime).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        return `
+            <div class="review-item">
+                <div class="review-item-header">
+                    <div class="review-item-info">
+                        <span class="review-item-instrument">${trade.instrument}</span>
+                        <span class="review-item-badge ${isWin ? 'win' : 'loss'}">${isWin ? 'WIN' : 'LOSS'}</span>
+                        <span class="review-item-pips ${pipsClass}">${pipsDisplay} pips</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        ${review.emotion ? `<span class="review-item-emotion">${emotionEmojis[review.emotion] || ''}</span>` : ''}
+                        <span class="review-item-date">${date}</span>
+                    </div>
+                </div>
+                ${answerTags ? `<div class="review-answers">${answerTags}</div>` : ''}
+                ${review.notes ? `<div class="review-item-notes">"${review.notes}"</div>` : ''}
+            </div>
+        `;
+    }
+
+    /**
+     * Filtrar reviews por outcome y emoción
+     */
+    function filterReviews() {
+        const outcomeFilter = document.getElementById('reviewFilterOutcome')?.value || 'all';
+        const emotionFilter = document.getElementById('reviewFilterEmotion')?.value || 'all';
+
+        let filtered = paperTrades.filter(t => t.review);
+
+        if (outcomeFilter !== 'all') {
+            filtered = filtered.filter(t => t.outcome === outcomeFilter);
+        }
+
+        if (emotionFilter !== 'all') {
+            filtered = filtered.filter(t => t.review?.emotion === emotionFilter);
+        }
+
+        renderReviews(filtered);
+    }
+
+    /**
+     * Exportar trades a CSV
+     */
+    function exportToCSV() {
+        if (paperTrades.length === 0) {
+            showToast('⚠️ No hay trades para exportar', 'warning');
+            return;
+        }
+
+        const headers = [
+            'ID', 'Fecha Entrada', 'Fecha Salida', 'Instrumento', 'Dirección',
+            'Resultado', 'Pips', 'Estrategia', 'Duración',
+            'Siguió Estrategia', 'FOMO', 'Emocional', 'Entry Correcto',
+            'Respetó SL', 'Movió SL/TP', 'Salió Antes', 'Emoción', 'Notas'
+        ];
+
+        const rows = paperTrades.map(trade => {
+            const review = trade.review || {};
+            return [
+                trade.id,
+                new Date(trade.entryTime).toLocaleString('es-ES'),
+                new Date(trade.exitTime).toLocaleString('es-ES'),
+                trade.instrument,
+                trade.direction?.toUpperCase(),
+                trade.outcome,
+                trade.pips,
+                trade.strategy || '',
+                trade.duration || '',
+                review.followedStrategy || '',
+                review.wasFomo || '',
+                review.wasEmotional || '',
+                review.correctEntry || '',
+                review.respectedSL || '',
+                review.movedSLTP || '',
+                review.exitedEarly || '',
+                review.emotion || '',
+                (review.notes || '').replace(/"/g, '""')
+            ];
+        });
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+        ].join('\n');
+
+        const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `paper-trading-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+
+        showToast('📊 CSV exportado exitosamente', 'success');
+    }
+
+    /**
+     * Exportar trades a PDF
+     */
+    function exportToPDF() {
+        if (paperTrades.length === 0) {
+            showToast('⚠️ No hay trades para exportar', 'warning');
+            return;
+        }
+
+        // Calcular estadísticas
+        const closedTrades = paperTrades.filter(t => t.status === 'closed');
+        const wins = closedTrades.filter(t => t.pips >= 0).length;
+        const losses = closedTrades.filter(t => t.pips < 0).length;
+        const winRate = closedTrades.length > 0 ? ((wins / closedTrades.length) * 100).toFixed(1) : 0;
+        const totalPips = closedTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
+        const avgPips = closedTrades.length > 0 ? (totalPips / closedTrades.length).toFixed(1) : 0;
+
+        // Estadísticas de reviews
+        const tradesWithReview = closedTrades.filter(t => t.review);
+        const followedStrategy = tradesWithReview.filter(t => t.review?.followedStrategy === 'yes').length;
+        const fomoCount = tradesWithReview.filter(t => t.review?.wasFomo === 'yes').length;
+        const emotionalCount = tradesWithReview.filter(t => t.review?.wasEmotional === 'yes').length;
+
+        // Crear contenido HTML para PDF
+        const printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Paper Trading Report</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #333; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #6366f1; padding-bottom: 20px; }
+                    .header h1 { color: #6366f1; font-size: 28px; }
+                    .header p { color: #666; margin-top: 5px; }
+                    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }
+                    .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+                    .stat-box .value { font-size: 24px; font-weight: bold; color: #333; }
+                    .stat-box .label { font-size: 11px; color: #666; text-transform: uppercase; }
+                    .stat-box.positive .value { color: #10b981; }
+                    .stat-box.negative .value { color: #ef4444; }
+                    .section { margin-bottom: 25px; }
+                    .section h2 { font-size: 16px; color: #6366f1; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; }
+                    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+                    th { background: #f8f9fa; font-weight: 600; color: #374151; }
+                    .win { color: #10b981; font-weight: 600; }
+                    .loss { color: #ef4444; font-weight: 600; }
+                    .review-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+                    .review-box { background: #f8f9fa; padding: 12px; border-radius: 6px; text-align: center; }
+                    .review-box .value { font-size: 20px; font-weight: bold; }
+                    .review-box .label { font-size: 10px; color: #666; }
+                    .footer { margin-top: 30px; text-align: center; font-size: 11px; color: #999; }
+                    @media print { body { padding: 20px; } }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>📊 Paper Trading Report</h1>
+                    <p>Generado el ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="value">${closedTrades.length}</div>
+                        <div class="label">Total Trades</div>
+                    </div>
+                    <div class="stat-box positive">
+                        <div class="value">${wins}</div>
+                        <div class="label">Ganados</div>
+                    </div>
+                    <div class="stat-box negative">
+                        <div class="value">${losses}</div>
+                        <div class="label">Perdidos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value">${winRate}%</div>
+                        <div class="label">Win Rate</div>
+                    </div>
+                    <div class="stat-box ${totalPips >= 0 ? 'positive' : 'negative'}">
+                        <div class="value">${totalPips >= 0 ? '+' : ''}${totalPips}</div>
+                        <div class="label">Total Pips</div>
+                    </div>
+                </div>
+
+                ${tradesWithReview.length > 0 ? `
+                <div class="section">
+                    <h2>📋 Análisis Psicológico (${tradesWithReview.length} reviews)</h2>
+                    <div class="review-section">
+                        <div class="review-box">
+                            <div class="value" style="color: #10b981;">${tradesWithReview.length > 0 ? Math.round((followedStrategy / tradesWithReview.length) * 100) : 0}%</div>
+                            <div class="label">Siguió Estrategia</div>
+                        </div>
+                        <div class="review-box">
+                            <div class="value" style="color: #f59e0b;">${tradesWithReview.length > 0 ? Math.round((fomoCount / tradesWithReview.length) * 100) : 0}%</div>
+                            <div class="label">Trades FOMO</div>
+                        </div>
+                        <div class="review-box">
+                            <div class="value" style="color: #ef4444;">${tradesWithReview.length > 0 ? Math.round((emotionalCount / tradesWithReview.length) * 100) : 0}%</div>
+                            <div class="label">Emocionales</div>
+                        </div>
+                        <div class="review-box">
+                            <div class="value">${avgPips >= 0 ? '+' : ''}${avgPips}</div>
+                            <div class="label">Pips Promedio</div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="section">
+                    <h2>📈 Historial de Trades</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Instrumento</th>
+                                <th>Dirección</th>
+                                <th>Resultado</th>
+                                <th>Pips</th>
+                                <th>Estrategia</th>
+                                <th>Emoción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${closedTrades.slice(0, 50).map(trade => {
+                                const emotionEmojis = { confident: '😎', neutral: '😐', fear: '😰', greed: '🤑', frustration: '😤', revenge: '😡' };
+                                return `
+                                <tr>
+                                    <td>${new Date(trade.exitTime).toLocaleDateString('es-ES')}</td>
+                                    <td><strong>${trade.instrument}</strong></td>
+                                    <td>${trade.direction?.toUpperCase()}</td>
+                                    <td class="${trade.outcome === 'TP' ? 'win' : 'loss'}">${trade.outcome}</td>
+                                    <td class="${trade.pips >= 0 ? 'win' : 'loss'}">${trade.pips >= 0 ? '+' : ''}${trade.pips}</td>
+                                    <td>${trade.strategy || '-'}</td>
+                                    <td>${trade.review?.emotion ? emotionEmojis[trade.review.emotion] : '-'}</td>
+                                </tr>
+                            `}).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="footer">
+                    <p>Generado por Trading Journal - Paper Trading Module</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Abrir ventana de impresión
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.focus();
+
+        setTimeout(() => {
+            printWindow.print();
+        }, 250);
+
+        showToast('📄 PDF listo para imprimir', 'success');
+    }
+
     // API pública
     return {
         init,
@@ -1431,6 +1960,10 @@ const PaperTrading = (function() {
         convertPercentToPips,
         resetPaperTrading,
         exportData,
+        exportToCSV,
+        exportToPDF,
+        filterReviews,
+        renderReviews,
         getStats: () => ({
             totalTrades: paperTrades.filter(t => t.status === 'closed').length,
             wins: paperTrades.filter(t => t.status === 'closed' && t.pnl >= 0).length,

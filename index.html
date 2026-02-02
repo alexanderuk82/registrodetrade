@@ -594,6 +594,7 @@
                                 <label for="paperInstrument">Instrumento</label>
                                 <select id="paperInstrument">
                                     <option value="XAUUSD">XAUUSD (Oro)</option>
+                                    <option value="XAGUSD">XAGUSD (Plata)</option>
                                     <option value="EURUSD">EURUSD</option>
                                     <option value="GBPUSD">GBPUSD</option>
                                     <option value="USDJPY">USDJPY</option>
@@ -607,6 +608,7 @@
                                     <option value="BTCUSD">BTCUSD</option>
                                     <option value="ETHUSD">ETHUSD</option>
                                     <option value="US30">US30 (Dow Jones)</option>
+                                    <option value="US500">US500 (S&P 500)</option>
                                     <option value="NAS100">NAS100 (Nasdaq)</option>
                                     <option value="_ADD_NEW_">➕ Añadir Par...</option>
                                 </select>
@@ -696,15 +698,56 @@
                                 <i data-lucide="clock"></i>
                                 Trades Recientes
                             </h3>
-                            <button class="btn btn-secondary" onclick="PaperTrading.exportData()">
-                                <i data-lucide="download"></i>
-                                Exportar
-                            </button>
+                            <div class="export-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="PaperTrading.exportToCSV()">
+                                    <i data-lucide="file-text"></i>
+                                    CSV
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="PaperTrading.exportToPDF()">
+                                    <i data-lucide="file-down"></i>
+                                    PDF
+                                </button>
+                            </div>
                         </div>
                         <div id="paperRecentTrades">
                             <div class="empty-state">
                                 <i data-lucide="inbox"></i>
                                 <p>No hay trades recientes</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trade Reviews Section -->
+                    <div class="trade-reviews-section">
+                        <div class="reviews-header">
+                            <h3>
+                                <i data-lucide="clipboard-list"></i>
+                                Historial de Reviews
+                            </h3>
+                            <div class="reviews-filters">
+                                <select id="reviewFilterOutcome" title="Filtrar por resultado" aria-label="Filtrar por resultado" onchange="PaperTrading.filterReviews()">
+                                    <option value="all">Todos</option>
+                                    <option value="TP">Solo Wins</option>
+                                    <option value="SL">Solo Losses</option>
+                                </select>
+                                <select id="reviewFilterEmotion" title="Filtrar por emoción" aria-label="Filtrar por emoción" onchange="PaperTrading.filterReviews()">
+                                    <option value="all">Todas las emociones</option>
+                                    <option value="confident">😎 Confianza</option>
+                                    <option value="neutral">😐 Neutral</option>
+                                    <option value="fear">😰 Miedo</option>
+                                    <option value="greed">🤑 Avaricia</option>
+                                    <option value="frustration">😤 Frustración</option>
+                                    <option value="revenge">😡 Revenge</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="reviews-stats" id="reviewsStats">
+                            <!-- Stats generadas dinámicamente -->
+                        </div>
+                        <div id="tradeReviewsList" class="reviews-list">
+                            <div class="empty-state">
+                                <i data-lucide="clipboard-list"></i>
+                                <p>No hay reviews registrados</p>
                             </div>
                         </div>
                     </div>
@@ -1018,6 +1061,117 @@
                 <button type="button" class="btn btn-primary" id="confirmAddIndicator">
                     <i data-lucide="check"></i>
                     Agregar Indicador
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Review Modal (Paper Trading) -->
+    <div id="tradeReviewModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-review">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <i data-lucide="clipboard-check"></i>
+                    <h3>Trade Review</h3>
+                </div>
+                <span class="review-badge" id="reviewBadge">WIN</span>
+            </div>
+            <div class="modal-body">
+                <p class="review-subtitle">Reflexiona sobre tu trade (todo es opcional)</p>
+
+                <div class="review-questions">
+                    <!-- Pregunta 1 -->
+                    <div class="review-question">
+                        <span class="question-text">¿Seguiste tu estrategia al pie de la letra?</span>
+                        <div class="btn-group-yesno">
+                            <button type="button" class="btn-yesno" data-question="followedStrategy" data-value="yes">Sí</button>
+                            <button type="button" class="btn-yesno" data-question="followedStrategy" data-value="no">No</button>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta 2 -->
+                    <div class="review-question">
+                        <span class="question-text">¿Fue FOMO (miedo a perderte la oportunidad)?</span>
+                        <div class="btn-group-yesno">
+                            <button type="button" class="btn-yesno" data-question="wasFomo" data-value="yes">Sí</button>
+                            <button type="button" class="btn-yesno" data-question="wasFomo" data-value="no">No</button>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta 3 -->
+                    <div class="review-question">
+                        <span class="question-text">¿Fue una decisión emocional?</span>
+                        <div class="btn-group-yesno">
+                            <button type="button" class="btn-yesno" data-question="wasEmotional" data-value="yes">Sí</button>
+                            <button type="button" class="btn-yesno" data-question="wasEmotional" data-value="no">No</button>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta 4 -->
+                    <div class="review-question">
+                        <span class="question-text">¿Entraste en el nivel correcto?</span>
+                        <div class="btn-group-yesno">
+                            <button type="button" class="btn-yesno" data-question="correctEntry" data-value="yes">Sí</button>
+                            <button type="button" class="btn-yesno" data-question="correctEntry" data-value="no">No</button>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta 5 -->
+                    <div class="review-question">
+                        <span class="question-text">¿Respetaste tu stop loss original?</span>
+                        <div class="btn-group-yesno">
+                            <button type="button" class="btn-yesno" data-question="respectedSL" data-value="yes">Sí</button>
+                            <button type="button" class="btn-yesno" data-question="respectedSL" data-value="no">No</button>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta 6 -->
+                    <div class="review-question">
+                        <span class="question-text">¿Moviste el SL/TP antes de tiempo?</span>
+                        <div class="btn-group-yesno">
+                            <button type="button" class="btn-yesno" data-question="movedSLTP" data-value="yes">Sí</button>
+                            <button type="button" class="btn-yesno" data-question="movedSLTP" data-value="no">No</button>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta 7 -->
+                    <div class="review-question">
+                        <span class="question-text">¿Saliste antes por miedo?</span>
+                        <div class="btn-group-yesno">
+                            <button type="button" class="btn-yesno" data-question="exitedEarly" data-value="yes">Sí</button>
+                            <button type="button" class="btn-yesno" data-question="exitedEarly" data-value="no">No</button>
+                        </div>
+                    </div>
+
+                    <!-- Emoción predominante -->
+                    <div class="review-question">
+                        <span class="question-text">¿Qué emoción predominó?</span>
+                        <div class="emotion-selector">
+                            <button type="button" class="btn-emotion" data-emotion="confident" title="Confianza">😎</button>
+                            <button type="button" class="btn-emotion" data-emotion="neutral" title="Neutral">😐</button>
+                            <button type="button" class="btn-emotion" data-emotion="fear" title="Miedo">😰</button>
+                            <button type="button" class="btn-emotion" data-emotion="greed" title="Avaricia">🤑</button>
+                            <button type="button" class="btn-emotion" data-emotion="frustration" title="Frustración">😤</button>
+                            <button type="button" class="btn-emotion" data-emotion="revenge" title="Revenge">😡</button>
+                        </div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="review-notes">
+                        <label for="reviewNotes">Notas / Lecciones aprendidas:</label>
+                        <textarea id="reviewNotes" placeholder="¿Qué aprendiste de este trade?"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="skipReviewBtn">
+                    <i data-lucide="skip-forward"></i>
+                    Saltar
+                </button>
+                <button type="button" class="btn btn-primary" id="saveReviewBtn">
+                    <i data-lucide="save"></i>
+                    Guardar Review
                 </button>
             </div>
         </div>
