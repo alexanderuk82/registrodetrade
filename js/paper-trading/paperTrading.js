@@ -306,6 +306,34 @@ const PaperTrading = (function() {
     }
 
     /**
+     * Obtener tamaño de pip real por instrumento
+     * Usado para convertir porcentaje a pips correctamente
+     */
+    function getPipSize(instrument) {
+        // Pares con JPY (2 decimales)
+        if (instrument.includes('JPY')) return 0.01;
+
+        // Metales
+        if (instrument.includes('XAU')) return 0.1;    // Oro: 1 pip = 0.10
+        if (instrument.includes('XAG')) return 0.01;   // Plata: 1 pip = 0.01
+        if (instrument.includes('XTI') || instrument.includes('OIL') || instrument.includes('WTI')) return 0.01; // Petróleo
+
+        // Índices (1 punto = 1 pip)
+        if (instrument.includes('US30') || instrument.includes('DOW')) return 1;
+        if (instrument.includes('NAS') || instrument.includes('NDX')) return 1;
+        if (instrument.includes('US500') || instrument.includes('SPX')) return 0.1;
+        if (instrument.includes('GER') || instrument.includes('DAX')) return 0.1;
+        if (instrument.includes('UK100') || instrument.includes('FTSE')) return 0.1;
+
+        // Crypto (1 punto = 1 pip)
+        if (instrument.includes('BTC')) return 1;
+        if (instrument.includes('ETH')) return 0.1;
+
+        // Forex estándar (4 decimales)
+        return 0.0001;
+    }
+
+    /**
      * Calcular duración del trade
      */
     function calculateDuration(entryTime, exitTime) {
@@ -1345,42 +1373,51 @@ const PaperTrading = (function() {
     
     /**
      * Convertir porcentaje a pips
+     * Fórmula: pips = (precio_entrada * porcentaje / 100) / pip_size
+     *
+     * Ejemplos:
+     * - XAUUSD: entry=2050, -0.94% → (2050 * 0.0094) / 0.1 = 192.7 pips
+     * - EURUSD: entry=1.0850, 1% → (1.0850 * 0.01) / 0.0001 = 108.5 pips
+     * - NAS100: entry=17250, -0.94% → (17250 * 0.0094) / 1 = 162.15 pips
      */
     function convertPercentToPips(tradeId, percentValue = null) {
         const trade = activeTrades.find(t => t.id === tradeId);
         if (!trade) return;
-        
+
         // Obtener el input de porcentaje si no se proporciona valor
         const percentInput = document.getElementById(`percent-${tradeId}`);
         const pipsInput = document.getElementById(`pips-${tradeId}`);
-        
+
         if (!percentInput || !pipsInput) return;
-        
+
         const percent = percentValue !== null ? parseFloat(percentValue) : parseFloat(percentInput.value);
-        
+
         if (isNaN(percent)) {
             showToast('⚠️ Ingresa un porcentaje válido', 'warning');
             return;
         }
-        
-        // Calcular pips basado en el porcentaje
-        // Asumiendo que el porcentaje es sobre el precio de entrada
-        // Por ejemplo: 1% en EURUSD (1.0850) = 108.5 pips
-        // 1% en XAUUSD (2050) = 205 pips
-        
-        const priceMovement = trade.entryPrice * (percent / 100);
-        const pips = Math.round(priceMovement * getPipMultiplier(trade.instrument));
-        
+
+        // Calcular pips usando pip_size real del instrumento
+        const pipSize = getPipSize(trade.instrument);
+        const priceMovement = trade.entryPrice * (Math.abs(percent) / 100);
+        const pipsRaw = priceMovement / pipSize;
+
+        // Mantener el signo del porcentaje
+        const pips = percent >= 0 ? Math.round(pipsRaw) : -Math.round(pipsRaw);
+
         // Actualizar el input de pips
         pipsInput.value = pips;
-        
+
         // Feedback visual
-        pipsInput.style.backgroundColor = '#10b98120';
+        const isPositive = pips >= 0;
+        pipsInput.style.backgroundColor = isPositive ? '#10b98120' : '#ef444420';
         setTimeout(() => {
             pipsInput.style.backgroundColor = '';
-        }, 500);
+        }, 800);
         
-        showToast(`📏 ${percent}% = ${pips} pips en ${trade.instrument}`, 'info');
+        // Mostrar toast con detalles del cálculo
+        const pipSizeDisplay = pipSize >= 0.01 ? pipSize : pipSize.toFixed(4);
+        showToast(`📏 ${percent}% = ${pips} pips (${trade.instrument}, pip=${pipSizeDisplay})`, 'info');
     }
     
     // API pública

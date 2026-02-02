@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(git push:*)",
+      "Bash(start \"\" \"c:\\\\Users\\\\alexb\\\\OneDrive\\\\Alexander''s Studio\\\\registrodetrade\\\\index.html\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
